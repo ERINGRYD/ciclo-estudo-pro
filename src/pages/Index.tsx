@@ -1,38 +1,61 @@
+import { useState } from "react";
 import { BookOpen } from "lucide-react";
 import StudyCycleChart from "@/components/StudyCycleChart";
 import SubjectCard from "@/components/SubjectCard";
+import PomodoroTimer from "@/components/PomodoroTimer";
+
+interface Subject {
+  name: string;
+  abbreviation: string;
+  studiedMinutes: number;
+  breakMinutes: number;
+  totalMinutes: number;
+  color: string;
+}
 
 const Index = () => {
-  const subjects = [
+  const [pomodoroSubject, setPomodoroSubject] = useState<Subject | null>(null);
+
+  const subjects: Subject[] = [
     {
       name: "Matemática",
+      abbreviation: "MAT",
       studiedMinutes: 120,
+      breakMinutes: 15,
       totalMinutes: 180,
-      color: "hsl(217, 91%, 60%)", // chart-1
+      color: "hsl(217, 91%, 60%)",
     },
     {
       name: "Português",
+      abbreviation: "POR",
       studiedMinutes: 90,
+      breakMinutes: 10,
       totalMinutes: 150,
-      color: "hsl(142, 76%, 36%)", // chart-2
+      color: "hsl(142, 76%, 36%)",
     },
     {
       name: "História",
+      abbreviation: "HIS",
       studiedMinutes: 60,
+      breakMinutes: 8,
       totalMinutes: 120,
-      color: "hsl(38, 92%, 50%)", // chart-3
+      color: "hsl(38, 92%, 50%)",
     },
     {
       name: "Geografia",
+      abbreviation: "GEO",
       studiedMinutes: 45,
+      breakMinutes: 5,
       totalMinutes: 90,
-      color: "hsl(271, 81%, 56%)", // chart-4
+      color: "hsl(271, 81%, 56%)",
     },
     {
       name: "Física",
+      abbreviation: "FIS",
       studiedMinutes: 75,
+      breakMinutes: 12,
       totalMinutes: 150,
-      color: "hsl(339, 82%, 56%)", // chart-5
+      color: "hsl(339, 82%, 56%)",
     },
   ];
 
@@ -52,7 +75,10 @@ const Index = () => {
 
         {/* Chart Section */}
         <div className="bg-card rounded-2xl p-6 mb-8 border border-border shadow-[var(--shadow-medium)]">
-          <StudyCycleChart subjects={subjects} />
+          <StudyCycleChart 
+            subjects={subjects} 
+            onOpenPomodoro={(subject) => setPomodoroSubject(subject)}
+          />
         </div>
 
         {/* Subjects List */}
@@ -69,6 +95,11 @@ const Index = () => {
           ))}
         </div>
       </div>
+
+      <PomodoroTimer 
+        subject={pomodoroSubject}
+        onClose={() => setPomodoroSubject(null)}
+      />
     </div>
   );
 };
