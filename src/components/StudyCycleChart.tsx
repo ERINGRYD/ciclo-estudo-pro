@@ -3,15 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Clock, Pause, TrendingUp, Play } from "lucide-react";
 import { useState } from "react";
-
-interface Subject {
-  name: string;
-  abbreviation: string;
-  studiedMinutes: number;
-  breakMinutes: number;
-  totalMinutes: number;
-  color: string;
-}
+import { Subject } from "@/types/study";
 
 interface StudyCycleChartProps {
   subjects: Subject[];

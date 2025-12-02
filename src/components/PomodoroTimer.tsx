@@ -3,12 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Play, Pause, RotateCcw, X } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
-
-interface Subject {
-  name: string;
-  abbreviation: string;
-  color: string;
-}
+import { Subject } from "@/types/study";
 
 interface PomodoroTimerProps {
   subject: Subject | null;

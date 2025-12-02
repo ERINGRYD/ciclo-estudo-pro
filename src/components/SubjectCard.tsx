@@ -1,15 +1,23 @@
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
+import { BookOpen } from "lucide-react";
+import { Subject } from "@/types/study";
 
 interface SubjectCardProps {
-  name: string;
-  studiedMinutes: number;
-  totalMinutes: number;
-  color: string;
+  subject: Subject;
+  onManageTopics: (subject: Subject) => void;
 }
 
-const SubjectCard = ({ name, studiedMinutes, totalMinutes, color }: SubjectCardProps) => {
+const SubjectCard = ({ subject, onManageTopics }: SubjectCardProps) => {
+  const { name, studiedMinutes, totalMinutes, color, themes } = subject;
   const remainingMinutes = totalMinutes - studiedMinutes;
   const progressPercentage = totalMinutes > 0 ? (studiedMinutes / totalMinutes) * 100 : 0;
+  
+  const totalTopics = themes.reduce((acc, theme) => acc + theme.topics.length, 0);
+  const completedTopics = themes.reduce(
+    (acc, theme) => acc + theme.topics.filter(t => t.completed).length,
+    0
+  );
 
   const formatTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -23,15 +31,32 @@ const SubjectCard = ({ name, studiedMinutes, totalMinutes, color }: SubjectCardP
   return (
     <div className="bg-card rounded-xl p-5 border border-border shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-medium)] transition-shadow">
       <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-1">
           <div
             className="w-3 h-3 rounded-full"
             style={{ backgroundColor: color }}
           />
-          <h3 className="font-semibold text-lg text-card-foreground">{name}</h3>
+          <div className="flex-1">
+            <h3 className="font-semibold text-lg text-card-foreground">{name}</h3>
+            {totalTopics > 0 && (
+              <p className="text-xs text-muted-foreground">
+                {completedTopics}/{totalTopics} tópicos concluídos
+              </p>
+            )}
+          </div>
         </div>
-        <div className="text-sm font-medium text-muted-foreground">
-          {Math.round(progressPercentage)}%
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onManageTopics(subject)}
+          >
+            <BookOpen className="w-4 h-4 mr-2" />
+            Temas
+          </Button>
+          <div className="text-sm font-medium text-muted-foreground">
+            {Math.round(progressPercentage)}%
+          </div>
         </div>
       </div>
       
