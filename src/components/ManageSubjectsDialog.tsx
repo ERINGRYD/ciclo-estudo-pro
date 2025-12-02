@@ -6,15 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Plus, Edit2, Trash2, Save, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
-
-interface Subject {
-  name: string;
-  abbreviation: string;
-  studiedMinutes: number;
-  breakMinutes: number;
-  totalMinutes: number;
-  color: string;
-}
+import { Subject } from "@/types/study";
 
 interface ManageSubjectsDialogProps {
   open: boolean;
@@ -120,13 +112,15 @@ const ManageSubjectsDialog = ({ open, onClose, subjects, onUpdateSubjects }: Man
         breakMinutes: 0,
         totalMinutes: validatedData.totalMinutes,
         color: validatedData.color,
+        themes: [],
       };
 
       if (editingIndex !== null) {
-        // Keep studied and break minutes when editing
+        // Keep studied, break minutes, and themes when editing
         const oldSubject = subjects[editingIndex];
         newSubject.studiedMinutes = oldSubject.studiedMinutes;
         newSubject.breakMinutes = oldSubject.breakMinutes;
+        newSubject.themes = oldSubject.themes;
         
         const newSubjects = [...subjects];
         newSubjects[editingIndex] = newSubject;
