@@ -25,6 +25,9 @@ const ManageTopicsDialog = ({ open, onClose, subject, onUpdateSubject }: ManageT
 
   if (!subject) return null;
 
+  // Ensure themes array exists for legacy data
+  const themes = subject.themes || [];
+
   const handleAddTheme = () => {
     if (!newThemeName.trim()) {
       toast({
@@ -43,7 +46,7 @@ const ManageTopicsDialog = ({ open, onClose, subject, onUpdateSubject }: ManageT
 
     onUpdateSubject({
       ...subject,
-      themes: [...subject.themes, newTheme],
+      themes: [...themes, newTheme],
     });
 
     setNewThemeName("");
@@ -69,11 +72,11 @@ const ManageTopicsDialog = ({ open, onClose, subject, onUpdateSubject }: ManageT
       completed: false,
     };
 
-    const updatedThemes = subject.themes.map(theme => {
+    const updatedThemes = themes.map(theme => {
       if (theme.id === themeId) {
         return {
           ...theme,
-          topics: [...theme.topics, newTopic],
+          topics: [...(theme.topics || []), newTopic],
         };
       }
       return theme;
@@ -95,7 +98,7 @@ const ManageTopicsDialog = ({ open, onClose, subject, onUpdateSubject }: ManageT
   const handleDeleteTheme = (themeId: string) => {
     onUpdateSubject({
       ...subject,
-      themes: subject.themes.filter(t => t.id !== themeId),
+      themes: themes.filter(t => t.id !== themeId),
     });
     toast({
       title: "Tema removido",
@@ -104,11 +107,11 @@ const ManageTopicsDialog = ({ open, onClose, subject, onUpdateSubject }: ManageT
   };
 
   const handleDeleteTopic = (themeId: string, topicId: string) => {
-    const updatedThemes = subject.themes.map(theme => {
+    const updatedThemes = themes.map(theme => {
       if (theme.id === themeId) {
         return {
           ...theme,
-          topics: theme.topics.filter(t => t.id !== topicId),
+          topics: (theme.topics || []).filter(t => t.id !== topicId),
         };
       }
       return theme;
@@ -121,11 +124,11 @@ const ManageTopicsDialog = ({ open, onClose, subject, onUpdateSubject }: ManageT
   };
 
   const handleToggleTopic = (themeId: string, topicId: string) => {
-    const updatedThemes = subject.themes.map(theme => {
+    const updatedThemes = themes.map(theme => {
       if (theme.id === themeId) {
         return {
           ...theme,
-          topics: theme.topics.map(topic => {
+          topics: (theme.topics || []).map(topic => {
             if (topic.id === topicId) {
               return { ...topic, completed: !topic.completed };
             }
@@ -188,14 +191,15 @@ const ManageTopicsDialog = ({ open, onClose, subject, onUpdateSubject }: ManageT
 
           {/* Themes List */}
           <div className="space-y-3">
-            {subject.themes.length === 0 ? (
+            {themes.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">
                 Nenhum tema cadastrado. Adicione o primeiro tema!
               </p>
             ) : (
-              subject.themes.map((theme) => {
-                const completedTopics = theme.topics.filter(t => t.completed).length;
-                const totalTopics = theme.topics.length;
+              themes.map((theme) => {
+                const topicsList = theme.topics || [];
+                const completedTopics = topicsList.filter(t => t.completed).length;
+                const totalTopics = topicsList.length;
                 const isOpen = openThemes.has(theme.id);
 
                 return (
@@ -277,7 +281,7 @@ const ManageTopicsDialog = ({ open, onClose, subject, onUpdateSubject }: ManageT
 
                           {/* Topics List */}
                           <div className="space-y-2">
-                            {theme.topics.map((topic) => (
+                            {topicsList.map((topic) => (
                               <div
                                 key={topic.id}
                                 className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/30"
