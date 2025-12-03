@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BookOpen, Settings, Award, Bell, BellOff } from "lucide-react";
+import { BookOpen, Settings, Award, Bell, BellOff, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StudyCycleChart from "@/components/StudyCycleChart";
 import SubjectCard from "@/components/SubjectCard";
@@ -8,7 +8,9 @@ import ManageSubjectsDialog from "@/components/ManageSubjectsDialog";
 import ManageTopicsDialog from "@/components/ManageTopicsDialog";
 import WeeklyGoalsWidget from "@/components/WeeklyGoalsWidget";
 import AchievementsDialog from "@/components/AchievementsDialog";
-import { Subject, WeeklyGoal, Achievement } from "@/types/study";
+import SessionCompletionDialog from "@/components/SessionCompletionDialog";
+import StudyHistoryDialog from "@/components/StudyHistoryDialog";
+import { Subject, WeeklyGoal, Achievement, StudySession } from "@/types/study";
 import { ACHIEVEMENTS, checkAchievements } from "@/lib/achievements";
 import { useToast } from "@/hooks/use-toast";
 
@@ -63,6 +65,7 @@ const DEFAULT_SUBJECTS: Subject[] = [
 const STORAGE_KEY = "study-cycle-subjects";
 const GOALS_STORAGE_KEY = "study-cycle-goals";
 const ACHIEVEMENTS_STORAGE_KEY = "study-cycle-achievements";
+const SESSIONS_STORAGE_KEY = "study-cycle-sessions";
 const NOTIFICATIONS_KEY = "study-notifications-enabled";
 
 const Index = () => {
@@ -103,6 +106,18 @@ const Index = () => {
     return ACHIEVEMENTS;
   });
 
+  const [sessions, setSessions] = useState<StudySession[]>(() => {
+    const saved = localStorage.getItem(SESSIONS_STORAGE_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+
   const [notificationsEnabled, setNotificationsEnabled] = useState(() => {
     const saved = localStorage.getItem(NOTIFICATIONS_KEY);
     return saved === "true";
@@ -112,6 +127,15 @@ const Index = () => {
   const [manageDialogOpen, setManageDialogOpen] = useState(false);
   const [topicsDialogSubject, setTopicsDialogSubject] = useState<Subject | null>(null);
   const [achievementsDialogOpen, setAchievementsDialogOpen] = useState(false);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  
+  // Session completion state
+  const [pendingSession, setPendingSession] = useState<{
+    subjectName: string;
+    subjectColor: string;
+    focusMinutes: number;
+    breakMinutes: number;
+  } | null>(null);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(subjects));
@@ -124,6 +148,10 @@ const Index = () => {
   useEffect(() => {
     localStorage.setItem(ACHIEVEMENTS_STORAGE_KEY, JSON.stringify(achievements));
   }, [achievements]);
+
+  useEffect(() => {
+    localStorage.setItem(SESSIONS_STORAGE_KEY, JSON.stringify(sessions));
+  }, [sessions]);
 
   useEffect(() => {
     localStorage.setItem(NOTIFICATIONS_KEY, String(notificationsEnabled));
@@ -203,15 +231,53 @@ const Index = () => {
     ));
   };
 
-  const handlePomodoroComplete = (subjectName: string, minutesStudied: number) => {
+  const handlePomodoroComplete = (subjectName: string, subjectColor: string, focusMinutes: number, breakMinutes: number) => {
+    // Show session completion dialog
+    setPendingSession({
+      subjectName,
+      subjectColor,
+      focusMinutes,
+      breakMinutes,
+    });
+  };
+
+  const handleSaveSession = (studyType: string, stoppingPoint: string) => {
+    if (!pendingSession) return;
+
+    const newSession: StudySession = {
+      id: crypto.randomUUID(),
+      subjectName: pendingSession.subjectName,
+      subjectColor: pendingSession.subjectColor,
+      date: new Date().toISOString(),
+      focusMinutes: pendingSession.focusMinutes,
+      breakMinutes: pendingSession.breakMinutes,
+      studyType,
+      stoppingPoint,
+      createdAt: new Date().toISOString(),
+    };
+
+    setSessions(prev => [...prev, newSession]);
+    
+    // Update subject studied time
     setSubjects(prev => prev.map(s => 
-      s.name === subjectName 
-        ? { ...s, studiedMinutes: s.studiedMinutes + minutesStudied }
+      s.name === pendingSession.subjectName 
+        ? { ...s, studiedMinutes: s.studiedMinutes + pendingSession.focusMinutes }
         : s
     ));
+
     toast({
-      title: "Sessão concluída!",
-      description: `+${minutesStudied} minutos adicionados a ${subjectName}`,
+      title: "Sessão registrada!",
+      description: `+${pendingSession.focusMinutes} minutos adicionados a ${pendingSession.subjectName}`,
+    });
+
+    setPendingSession(null);
+  };
+
+  const handleDeleteSession = (sessionId: string) => {
+    setSessions(prev => prev.filter(s => s.id !== sessionId));
+    toast({
+      title: "Sessão removida",
+      description: "A sessão foi removida do histórico",
     });
   };
 
@@ -244,6 +310,14 @@ const Index = () => {
               ) : (
                 <BellOff className="w-5 h-5" />
               )}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setHistoryDialogOpen(true)}
+              title="Histórico de sessões"
+            >
+              <History className="w-5 h-5" />
             </Button>
             <Button
               variant="outline"
@@ -324,6 +398,23 @@ const Index = () => {
         subject={pomodoroSubject}
         onClose={() => setPomodoroSubject(null)}
         onSessionComplete={handlePomodoroComplete}
+      />
+
+      <SessionCompletionDialog
+        open={!!pendingSession}
+        onClose={() => setPendingSession(null)}
+        subjectName={pendingSession?.subjectName || ""}
+        subjectColor={pendingSession?.subjectColor || ""}
+        focusMinutes={pendingSession?.focusMinutes || 0}
+        breakMinutes={pendingSession?.breakMinutes || 0}
+        onSave={handleSaveSession}
+      />
+
+      <StudyHistoryDialog
+        open={historyDialogOpen}
+        onClose={() => setHistoryDialogOpen(false)}
+        sessions={sessions}
+        onDeleteSession={handleDeleteSession}
       />
 
       <ManageSubjectsDialog

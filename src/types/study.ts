@@ -37,3 +37,15 @@ export interface Achievement {
   unlockedAt: string | null;
   condition: (subjects: Subject[], goals: WeeklyGoal[]) => boolean;
 }
+
+export interface StudySession {
+  id: string;
+  subjectName: string;
+  subjectColor: string;
+  date: string;
+  focusMinutes: number;
+  breakMinutes: number;
+  studyType: string;
+  stoppingPoint: string;
+  createdAt: string;
+}

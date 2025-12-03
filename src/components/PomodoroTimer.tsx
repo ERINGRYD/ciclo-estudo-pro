@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RotateCcw, X, Settings2 } from "lucide-react";
+import { Play, Pause, RotateCcw, X, Settings2, Check } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Subject } from "@/types/study";
 import { Label } from "@/components/ui/label";
@@ -10,7 +10,7 @@ import { Slider } from "@/components/ui/slider";
 interface PomodoroTimerProps {
   subject: Subject | null;
   onClose: () => void;
-  onSessionComplete?: (subjectName: string, minutesStudied: number) => void;
+  onSessionComplete?: (subjectName: string, subjectColor: string, focusMinutes: number, breakMinutes: number) => void;
 }
 
 const PomodoroTimer = ({ subject, onClose, onSessionComplete }: PomodoroTimerProps) => {
@@ -21,6 +21,8 @@ const PomodoroTimer = ({ subject, onClose, onSessionComplete }: PomodoroTimerPro
   const [isRunning, setIsRunning] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [completedFocusSessions, setCompletedFocusSessions] = useState(0);
+  const [totalBreakTime, setTotalBreakTime] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -29,6 +31,18 @@ const PomodoroTimer = ({ subject, onClose, onSessionComplete }: PomodoroTimerPro
       setSeconds(0);
     }
   }, [workTime, breakTime, isBreak]);
+
+  // Reset state when subject changes
+  useEffect(() => {
+    if (subject) {
+      setCompletedFocusSessions(0);
+      setTotalBreakTime(0);
+      setIsBreak(false);
+      setIsRunning(false);
+      setMinutes(workTime);
+      setSeconds(0);
+    }
+  }, [subject?.name]);
 
   useEffect(() => {
     if (isRunning) {
@@ -60,9 +74,12 @@ const PomodoroTimer = ({ subject, onClose, onSessionComplete }: PomodoroTimerPro
   }, [isRunning, isBreak, workTime, breakTime]);
 
   const handleTimerComplete = () => {
-    // If we just finished a focus session (not a break), register the time
-    if (!isBreak && subject && onSessionComplete) {
-      onSessionComplete(subject.name, workTime);
+    if (!isBreak) {
+      // Completed a focus session
+      setCompletedFocusSessions(prev => prev + 1);
+    } else {
+      // Completed a break session
+      setTotalBreakTime(prev => prev + breakTime);
     }
     setIsBreak(!isBreak);
   };
@@ -77,12 +94,32 @@ const PomodoroTimer = ({ subject, onClose, onSessionComplete }: PomodoroTimerPro
     setSeconds(0);
   };
 
+  const handleFinishSession = () => {
+    if (subject && onSessionComplete && completedFocusSessions > 0) {
+      const totalFocusMinutes = completedFocusSessions * workTime;
+      onSessionComplete(subject.name, subject.color, totalFocusMinutes, totalBreakTime);
+    }
+    setCompletedFocusSessions(0);
+    setTotalBreakTime(0);
+    setIsBreak(false);
+    setIsRunning(false);
+    setMinutes(workTime);
+    setSeconds(0);
+    onClose();
+  };
+
   const totalSeconds = (isBreak ? breakTime : workTime) * 60;
   const currentSeconds = minutes * 60 + seconds;
   const progress = ((totalSeconds - currentSeconds) / totalSeconds) * 100;
 
   return (
-    <Dialog open={!!subject} onOpenChange={() => onClose()}>
+    <Dialog open={!!subject} onOpenChange={() => {
+      if (completedFocusSessions > 0) {
+        handleFinishSession();
+      } else {
+        onClose();
+      }
+    }}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center justify-between">
@@ -102,7 +139,13 @@ const PomodoroTimer = ({ subject, onClose, onSessionComplete }: PomodoroTimerPro
               >
                 <Settings2 className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="icon" onClick={onClose}>
+              <Button variant="ghost" size="icon" onClick={() => {
+                if (completedFocusSessions > 0) {
+                  handleFinishSession();
+                } else {
+                  onClose();
+                }
+              }}>
                 <X className="w-4 h-4" />
               </Button>
             </div>
@@ -163,6 +206,24 @@ const PomodoroTimer = ({ subject, onClose, onSessionComplete }: PomodoroTimerPro
 
               <Progress value={progress} className="h-2" />
 
+              {/* Session Stats */}
+              {completedFocusSessions > 0 && (
+                <div className="flex justify-center gap-4 text-sm">
+                  <div className="text-center">
+                    <p className="text-muted-foreground">Sessões</p>
+                    <p className="font-semibold text-foreground">{completedFocusSessions}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-muted-foreground">Foco Total</p>
+                    <p className="font-semibold text-primary">{completedFocusSessions * workTime}m</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-muted-foreground">Pausas Total</p>
+                    <p className="font-semibold text-warning">{totalBreakTime}m</p>
+                  </div>
+                </div>
+              )}
+
               <div className="flex gap-3 justify-center">
                 <Button
                   variant="outline"
@@ -189,6 +250,17 @@ const PomodoroTimer = ({ subject, onClose, onSessionComplete }: PomodoroTimerPro
                     </>
                   )}
                 </Button>
+                {completedFocusSessions > 0 && (
+                  <Button
+                    variant="default"
+                    size="icon"
+                    onClick={handleFinishSession}
+                    className="h-12 w-12 bg-success hover:bg-success/90"
+                    title="Finalizar e registrar sessão"
+                  >
+                    <Check className="w-5 h-5" />
+                  </Button>
+                )}
               </div>
 
               <div className="flex justify-between text-sm text-muted-foreground px-2">
