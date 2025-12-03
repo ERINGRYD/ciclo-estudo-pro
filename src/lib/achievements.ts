@@ -62,7 +62,11 @@ export const checkAchievements = (
   return currentAchievements.map(achievement => {
     if (achievement.unlockedAt) return achievement;
     
-    const unlocked = achievement.condition(subjects, goals);
+    // Get the condition from the original ACHIEVEMENTS array (functions aren't serialized in localStorage)
+    const originalAchievement = ACHIEVEMENTS.find(a => a.id === achievement.id);
+    if (!originalAchievement?.condition) return achievement;
+    
+    const unlocked = originalAchievement.condition(subjects, goals);
     if (unlocked) {
       return {
         ...achievement,
