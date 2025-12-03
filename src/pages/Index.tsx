@@ -203,6 +203,18 @@ const Index = () => {
     ));
   };
 
+  const handlePomodoroComplete = (subjectName: string, minutesStudied: number) => {
+    setSubjects(prev => prev.map(s => 
+      s.name === subjectName 
+        ? { ...s, studiedMinutes: s.studiedMinutes + minutesStudied }
+        : s
+    ));
+    toast({
+      title: "Sessão concluída!",
+      description: `+${minutesStudied} minutos adicionados a ${subjectName}`,
+    });
+  };
+
   const totalMinutes = subjects.reduce((acc, s) => acc + s.studiedMinutes, 0);
   const unlockedCount = achievements.filter(a => a.unlockedAt).length;
 
@@ -311,6 +323,7 @@ const Index = () => {
       <PomodoroTimer 
         subject={pomodoroSubject}
         onClose={() => setPomodoroSubject(null)}
+        onSessionComplete={handlePomodoroComplete}
       />
 
       <ManageSubjectsDialog

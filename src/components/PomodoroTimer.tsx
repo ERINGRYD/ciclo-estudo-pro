@@ -10,9 +10,10 @@ import { Slider } from "@/components/ui/slider";
 interface PomodoroTimerProps {
   subject: Subject | null;
   onClose: () => void;
+  onSessionComplete?: (subjectName: string, minutesStudied: number) => void;
 }
 
-const PomodoroTimer = ({ subject, onClose }: PomodoroTimerProps) => {
+const PomodoroTimer = ({ subject, onClose, onSessionComplete }: PomodoroTimerProps) => {
   const [workTime, setWorkTime] = useState(25);
   const [breakTime, setBreakTime] = useState(5);
   const [minutes, setMinutes] = useState(25);
@@ -59,6 +60,10 @@ const PomodoroTimer = ({ subject, onClose }: PomodoroTimerProps) => {
   }, [isRunning, isBreak, workTime, breakTime]);
 
   const handleTimerComplete = () => {
+    // If we just finished a focus session (not a break), register the time
+    if (!isBreak && subject && onSessionComplete) {
+      onSessionComplete(subject.name, workTime);
+    }
     setIsBreak(!isBreak);
   };
 
