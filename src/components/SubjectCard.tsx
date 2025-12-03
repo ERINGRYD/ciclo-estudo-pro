@@ -9,13 +9,13 @@ interface SubjectCardProps {
 }
 
 const SubjectCard = ({ subject, onManageTopics }: SubjectCardProps) => {
-  const { name, studiedMinutes, totalMinutes, color, themes } = subject;
+  const { name, studiedMinutes, totalMinutes, color, themes = [] } = subject;
   const remainingMinutes = totalMinutes - studiedMinutes;
   const progressPercentage = totalMinutes > 0 ? (studiedMinutes / totalMinutes) * 100 : 0;
   
-  const totalTopics = themes.reduce((acc, theme) => acc + theme.topics.length, 0);
+  const totalTopics = themes.reduce((acc, theme) => acc + (theme.topics?.length || 0), 0);
   const completedTopics = themes.reduce(
-    (acc, theme) => acc + theme.topics.filter(t => t.completed).length,
+    (acc, theme) => acc + (theme.topics?.filter(t => t.completed).length || 0),
     0
   );
 
