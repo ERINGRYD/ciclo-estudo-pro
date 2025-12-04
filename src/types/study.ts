@@ -8,6 +8,8 @@ export interface Theme {
   id: string;
   name: string;
   topics: Topic[];
+  studiedMinutes: number;
+  totalMinutes: number;
 }
 
 export interface Subject {

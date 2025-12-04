@@ -15,6 +15,7 @@ import ThemePomodoroDialog from "@/components/ThemePomodoroDialog";
 import { Subject, WeeklyGoal, Achievement, StudySession, Theme } from "@/types/study";
 import { ACHIEVEMENTS, checkAchievements } from "@/lib/achievements";
 import { useToast } from "@/hooks/use-toast";
+import { playAchievementSound } from "@/lib/sounds";
 
 const DEFAULT_SUBJECTS: Subject[] = [
   {
@@ -178,6 +179,9 @@ const Index = () => {
     if (newlyUnlocked.length > 0) {
       setAchievements(updatedAchievements);
       
+      // Play achievement sound
+      playAchievementSound();
+      
       newlyUnlocked.forEach((achievement) => {
         toast({
           title: "🎉 Nova Conquista!",
@@ -287,13 +291,24 @@ const Index = () => {
 
     setSessions(prev => [...prev, newSession]);
     
-    // Update subject studied time and check cycle
+    // Update subject studied time and theme time, then check cycle
     setSubjects(prev => {
-      const updated = prev.map(s => 
-        s.name === pendingSession.subjectName 
-          ? { ...s, studiedMinutes: s.studiedMinutes + pendingSession.focusMinutes }
-          : s
-      );
+      const updated = prev.map(s => {
+        if (s.name === pendingSession.subjectName) {
+          const updatedThemes = (s.themes || []).map(theme => {
+            if (pendingSession.themeName && theme.name === pendingSession.themeName) {
+              return { ...theme, studiedMinutes: (theme.studiedMinutes || 0) + pendingSession.focusMinutes };
+            }
+            return theme;
+          });
+          return { 
+            ...s, 
+            studiedMinutes: s.studiedMinutes + pendingSession.focusMinutes,
+            themes: updatedThemes
+          };
+        }
+        return s;
+      });
       return checkAndResetCycle(updated);
     });
 
@@ -307,11 +322,22 @@ const Index = () => {
 
   const handleAddManualTime = (subjectName: string, minutes: number, themeName?: string) => {
     setSubjects(prev => {
-      const updated = prev.map(s => 
-        s.name === subjectName 
-          ? { ...s, studiedMinutes: s.studiedMinutes + minutes }
-          : s
-      );
+      const updated = prev.map(s => {
+        if (s.name === subjectName) {
+          const updatedThemes = (s.themes || []).map(theme => {
+            if (themeName && theme.name === themeName) {
+              return { ...theme, studiedMinutes: (theme.studiedMinutes || 0) + minutes };
+            }
+            return theme;
+          });
+          return { 
+            ...s, 
+            studiedMinutes: s.studiedMinutes + minutes,
+            themes: updatedThemes
+          };
+        }
+        return s;
+      });
       return checkAndResetCycle(updated);
     });
 

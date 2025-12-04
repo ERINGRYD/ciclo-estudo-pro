@@ -73,9 +73,13 @@ const ThemePomodoroDialog = ({ open, onClose, subject, onStartPomodoro }: ThemeP
               <p className="text-sm font-medium text-muted-foreground">Ou escolha um tema:</p>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {themes.map((theme) => {
-                  const completedTopics = theme.topics.filter(t => t.completed).length;
-                  const totalTopics = theme.topics.length;
-                  const themeProgress = totalTopics > 0 ? (completedTopics / totalTopics) * 100 : 0;
+                  const topicsList = theme.topics || [];
+                  const completedTopics = topicsList.filter(t => t.completed).length;
+                  const totalTopics = topicsList.length;
+                  const themeStudied = theme.studiedMinutes || 0;
+                  const themeTotal = theme.totalMinutes || 0;
+                  const themeTimeProgress = themeTotal > 0 ? Math.min(100, (themeStudied / themeTotal) * 100) : 0;
+                  const themeRemainingMinutes = Math.max(0, themeTotal - themeStudied);
                   
                   return (
                     <Button
@@ -87,21 +91,30 @@ const ThemePomodoroDialog = ({ open, onClose, subject, onStartPomodoro }: ThemeP
                         onClose();
                       }}
                     >
-                      <div className="flex flex-col items-start">
+                      <div className="flex flex-col items-start gap-1">
                         <span className="font-medium">{theme.name}</span>
                         {totalTopics > 0 && (
                           <span className="text-xs text-muted-foreground">
                             {completedTopics}/{totalTopics} tópicos completos
                           </span>
                         )}
+                        {themeTotal > 0 && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <Clock className="w-3 h-3" />
+                            <span>{formatTime(themeStudied)} / {formatTime(themeTotal)}</span>
+                          </div>
+                        )}
                       </div>
-                      <div className="flex items-center gap-2">
-                        {totalTopics > 0 && (
-                          <div className="w-16 h-1.5 bg-secondary rounded-full overflow-hidden">
-                            <div 
-                              className="h-full bg-primary rounded-full"
-                              style={{ width: `${themeProgress}%` }}
-                            />
+                      <div className="flex flex-col items-end gap-1">
+                        {themeTotal > 0 && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-medium">{Math.round(themeTimeProgress)}%</span>
+                            <div className="w-16 h-1.5 bg-secondary rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-primary rounded-full"
+                                style={{ width: `${themeTimeProgress}%` }}
+                              />
+                            </div>
                           </div>
                         )}
                         <Play className="w-4 h-4" />

@@ -6,6 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { Subject } from "@/types/study";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { playPomodoroEndSound, playBreakEndSound } from "@/lib/sounds";
 
 interface PomodoroTimerProps {
   subject: Subject | null;
@@ -78,9 +79,11 @@ const PomodoroTimer = ({ subject, themeName, onClose, onSessionComplete }: Pomod
     if (!isBreak) {
       // Completed a focus session
       setCompletedFocusSessions(prev => prev + 1);
+      playPomodoroEndSound();
     } else {
       // Completed a break session
       setTotalBreakTime(prev => prev + breakTime);
+      playBreakEndSound();
     }
     setIsBreak(!isBreak);
   };
