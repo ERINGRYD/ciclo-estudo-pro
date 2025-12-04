@@ -42,6 +42,7 @@ export interface StudySession {
   id: string;
   subjectName: string;
   subjectColor: string;
+  themeName?: string;
   date: string;
   focusMinutes: number;
   breakMinutes: number;

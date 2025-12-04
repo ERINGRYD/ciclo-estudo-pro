@@ -12,6 +12,7 @@ interface SessionCompletionDialogProps {
   onClose: () => void;
   subjectName: string;
   subjectColor: string;
+  themeName?: string;
   focusMinutes: number;
   breakMinutes: number;
   onSave: (studyType: string, stoppingPoint: string) => void;
@@ -33,6 +34,7 @@ const SessionCompletionDialog = ({
   onClose,
   subjectName,
   subjectColor,
+  themeName,
   focusMinutes,
   breakMinutes,
   onSave,
@@ -63,7 +65,12 @@ const SessionCompletionDialog = ({
               className="w-4 h-4 rounded-full"
               style={{ backgroundColor: subjectColor }}
             />
-            <DialogTitle>Sessão Concluída - {subjectName}</DialogTitle>
+            <div>
+              <DialogTitle>Sessão Concluída - {subjectName}</DialogTitle>
+              {themeName && (
+                <p className="text-sm text-muted-foreground">{themeName}</p>
+              )}
+            </div>
           </div>
         </DialogHeader>
 
