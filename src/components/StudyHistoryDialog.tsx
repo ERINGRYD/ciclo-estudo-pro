@@ -127,9 +127,16 @@ const StudyHistoryDialog = ({ open, onClose, sessions, onDeleteSession }: StudyH
                             className="w-3 h-3 rounded-full"
                             style={{ backgroundColor: session.subjectColor }}
                           />
-                          <span className="font-medium text-foreground">
-                            {session.subjectName}
-                          </span>
+                          <div>
+                            <span className="font-medium text-foreground">
+                              {session.subjectName}
+                            </span>
+                            {session.themeName && (
+                              <span className="text-sm text-muted-foreground ml-2">
+                                ({session.themeName})
+                              </span>
+                            )}
+                          </div>
                         </div>
                         <Button
                           variant="ghost"

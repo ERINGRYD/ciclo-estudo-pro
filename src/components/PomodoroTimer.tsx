@@ -9,11 +9,12 @@ import { Slider } from "@/components/ui/slider";
 
 interface PomodoroTimerProps {
   subject: Subject | null;
+  themeName?: string;
   onClose: () => void;
-  onSessionComplete?: (subjectName: string, subjectColor: string, focusMinutes: number, breakMinutes: number) => void;
+  onSessionComplete?: (subjectName: string, subjectColor: string, focusMinutes: number, breakMinutes: number, themeName?: string) => void;
 }
 
-const PomodoroTimer = ({ subject, onClose, onSessionComplete }: PomodoroTimerProps) => {
+const PomodoroTimer = ({ subject, themeName, onClose, onSessionComplete }: PomodoroTimerProps) => {
   const [workTime, setWorkTime] = useState(25);
   const [breakTime, setBreakTime] = useState(5);
   const [minutes, setMinutes] = useState(25);
@@ -97,7 +98,7 @@ const PomodoroTimer = ({ subject, onClose, onSessionComplete }: PomodoroTimerPro
   const handleFinishSession = () => {
     if (subject && onSessionComplete && completedFocusSessions > 0) {
       const totalFocusMinutes = completedFocusSessions * workTime;
-      onSessionComplete(subject.name, subject.color, totalFocusMinutes, totalBreakTime);
+      onSessionComplete(subject.name, subject.color, totalFocusMinutes, totalBreakTime, themeName);
     }
     setCompletedFocusSessions(0);
     setTotalBreakTime(0);
@@ -128,7 +129,12 @@ const PomodoroTimer = ({ subject, onClose, onSessionComplete }: PomodoroTimerPro
                 className="w-4 h-4 rounded-full"
                 style={{ backgroundColor: subject?.color }}
               />
-              <DialogTitle>{subject?.name}</DialogTitle>
+              <div>
+                <DialogTitle>{subject?.name}</DialogTitle>
+                {themeName && (
+                  <p className="text-sm text-muted-foreground">{themeName}</p>
+                )}
+              </div>
             </div>
             <div className="flex gap-1">
               <Button 

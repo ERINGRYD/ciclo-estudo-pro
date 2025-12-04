@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BookOpen, Settings, Award, Bell, BellOff, History } from "lucide-react";
+import { BookOpen, Settings, Award, Bell, BellOff, History, Plus, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StudyCycleChart from "@/components/StudyCycleChart";
 import SubjectCard from "@/components/SubjectCard";
@@ -10,7 +10,9 @@ import WeeklyGoalsWidget from "@/components/WeeklyGoalsWidget";
 import AchievementsDialog from "@/components/AchievementsDialog";
 import SessionCompletionDialog from "@/components/SessionCompletionDialog";
 import StudyHistoryDialog from "@/components/StudyHistoryDialog";
-import { Subject, WeeklyGoal, Achievement, StudySession } from "@/types/study";
+import AddTimeDialog from "@/components/AddTimeDialog";
+import ThemePomodoroDialog from "@/components/ThemePomodoroDialog";
+import { Subject, WeeklyGoal, Achievement, StudySession, Theme } from "@/types/study";
 import { ACHIEVEMENTS, checkAchievements } from "@/lib/achievements";
 import { useToast } from "@/hooks/use-toast";
 
@@ -124,10 +126,14 @@ const Index = () => {
   });
 
   const [pomodoroSubject, setPomodoroSubject] = useState<Subject | null>(null);
+  const [pomodoroTheme, setPomodoroTheme] = useState<string | undefined>(undefined);
+  const [themePomodoroSubject, setThemePomodoroSubject] = useState<Subject | null>(null);
   const [manageDialogOpen, setManageDialogOpen] = useState(false);
   const [topicsDialogSubject, setTopicsDialogSubject] = useState<Subject | null>(null);
   const [achievementsDialogOpen, setAchievementsDialogOpen] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [addTimeDialogOpen, setAddTimeDialogOpen] = useState(false);
+  const [cycleCount, setCycleCount] = useState(0);
   
   // Session completion state
   const [pendingSession, setPendingSession] = useState<{
@@ -135,6 +141,7 @@ const Index = () => {
     subjectColor: string;
     focusMinutes: number;
     breakMinutes: number;
+    themeName?: string;
   } | null>(null);
 
   useEffect(() => {
@@ -231,14 +238,35 @@ const Index = () => {
     ));
   };
 
-  const handlePomodoroComplete = (subjectName: string, subjectColor: string, focusMinutes: number, breakMinutes: number) => {
+  // Check if all subjects have completed their cycle and reset
+  const checkAndResetCycle = (currentSubjects: Subject[]) => {
+    const allCompleted = currentSubjects.every(s => s.studiedMinutes >= s.totalMinutes);
+    if (allCompleted && currentSubjects.length > 0) {
+      setCycleCount(prev => prev + 1);
+      toast({
+        title: "🎉 Ciclo Completo!",
+        description: "Todas as matérias atingiram o tempo estimado. Iniciando novo ciclo!",
+      });
+      return currentSubjects.map(s => ({ ...s, studiedMinutes: 0, breakMinutes: 0 }));
+    }
+    return currentSubjects;
+  };
+
+  const handlePomodoroComplete = (subjectName: string, subjectColor: string, focusMinutes: number, breakMinutes: number, themeName?: string) => {
     // Show session completion dialog
     setPendingSession({
       subjectName,
       subjectColor,
       focusMinutes,
       breakMinutes,
+      themeName,
     });
+  };
+
+  const handleStartPomodoroFromTheme = (subject: Subject, theme?: Theme) => {
+    setPomodoroSubject(subject);
+    setPomodoroTheme(theme?.name);
+    setThemePomodoroSubject(null);
   };
 
   const handleSaveSession = (studyType: string, stoppingPoint: string) => {
@@ -248,6 +276,7 @@ const Index = () => {
       id: crypto.randomUUID(),
       subjectName: pendingSession.subjectName,
       subjectColor: pendingSession.subjectColor,
+      themeName: pendingSession.themeName,
       date: new Date().toISOString(),
       focusMinutes: pendingSession.focusMinutes,
       breakMinutes: pendingSession.breakMinutes,
@@ -258,12 +287,15 @@ const Index = () => {
 
     setSessions(prev => [...prev, newSession]);
     
-    // Update subject studied time
-    setSubjects(prev => prev.map(s => 
-      s.name === pendingSession.subjectName 
-        ? { ...s, studiedMinutes: s.studiedMinutes + pendingSession.focusMinutes }
-        : s
-    ));
+    // Update subject studied time and check cycle
+    setSubjects(prev => {
+      const updated = prev.map(s => 
+        s.name === pendingSession.subjectName 
+          ? { ...s, studiedMinutes: s.studiedMinutes + pendingSession.focusMinutes }
+          : s
+      );
+      return checkAndResetCycle(updated);
+    });
 
     toast({
       title: "Sessão registrada!",
@@ -271,6 +303,22 @@ const Index = () => {
     });
 
     setPendingSession(null);
+  };
+
+  const handleAddManualTime = (subjectName: string, minutes: number, themeName?: string) => {
+    setSubjects(prev => {
+      const updated = prev.map(s => 
+        s.name === subjectName 
+          ? { ...s, studiedMinutes: s.studiedMinutes + minutes }
+          : s
+      );
+      return checkAndResetCycle(updated);
+    });
+
+    toast({
+      title: "Tempo adicionado!",
+      description: `+${minutes} minutos adicionados a ${subjectName}${themeName ? ` (${themeName})` : ""}`,
+    });
   };
 
   const handleDeleteSession = (sessionId: string) => {
@@ -299,6 +347,14 @@ const Index = () => {
             </div>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => setAddTimeDialogOpen(true)}
+              title="Adicionar tempo manualmente"
+            >
+              <Plus className="w-5 h-5" />
+            </Button>
             <Button
               variant="outline"
               size="icon"
@@ -348,9 +404,15 @@ const Index = () => {
         {subjects.length > 0 ? (
           <>
             <div className="bg-card rounded-2xl p-6 mb-8 border border-border shadow-[var(--shadow-medium)]">
+              {cycleCount > 0 && (
+                <div className="flex items-center gap-2 mb-4 text-sm text-muted-foreground">
+                  <RefreshCw className="w-4 h-4" />
+                  <span>Ciclo {cycleCount + 1}</span>
+                </div>
+              )}
               <StudyCycleChart 
                 subjects={subjects} 
-                onOpenPomodoro={(subject) => setPomodoroSubject(subject)}
+                onOpenPomodoro={(subject) => setThemePomodoroSubject(subject)}
               />
             </div>
 
@@ -394,9 +456,20 @@ const Index = () => {
         )}
       </div>
 
+      <ThemePomodoroDialog
+        open={!!themePomodoroSubject}
+        onClose={() => setThemePomodoroSubject(null)}
+        subject={themePomodoroSubject}
+        onStartPomodoro={handleStartPomodoroFromTheme}
+      />
+
       <PomodoroTimer 
         subject={pomodoroSubject}
-        onClose={() => setPomodoroSubject(null)}
+        themeName={pomodoroTheme}
+        onClose={() => {
+          setPomodoroSubject(null);
+          setPomodoroTheme(undefined);
+        }}
         onSessionComplete={handlePomodoroComplete}
       />
 
@@ -405,6 +478,7 @@ const Index = () => {
         onClose={() => setPendingSession(null)}
         subjectName={pendingSession?.subjectName || ""}
         subjectColor={pendingSession?.subjectColor || ""}
+        themeName={pendingSession?.themeName}
         focusMinutes={pendingSession?.focusMinutes || 0}
         breakMinutes={pendingSession?.breakMinutes || 0}
         onSave={handleSaveSession}
@@ -415,6 +489,13 @@ const Index = () => {
         onClose={() => setHistoryDialogOpen(false)}
         sessions={sessions}
         onDeleteSession={handleDeleteSession}
+      />
+
+      <AddTimeDialog
+        open={addTimeDialogOpen}
+        onClose={() => setAddTimeDialogOpen(false)}
+        subjects={subjects}
+        onAddTime={handleAddManualTime}
       />
 
       <ManageSubjectsDialog
