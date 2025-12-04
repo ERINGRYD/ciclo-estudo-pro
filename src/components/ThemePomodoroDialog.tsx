@@ -15,6 +15,7 @@ interface ThemePomodoroDialogProps {
 const ThemePomodoroDialog = ({ open, onClose, subject, onStartPomodoro }: ThemePomodoroDialogProps) => {
   if (!subject) return null;
 
+  const themes = subject.themes || [];
   const subjectProgress = (subject.studiedMinutes / subject.totalMinutes) * 100;
   const remainingMinutes = Math.max(0, subject.totalMinutes - subject.studiedMinutes);
 
@@ -67,11 +68,11 @@ const ThemePomodoroDialog = ({ open, onClose, subject, onStartPomodoro }: ThemeP
           </Button>
 
           {/* Themes list */}
-          {subject.themes.length > 0 && (
+          {themes.length > 0 && (
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">Ou escolha um tema:</p>
               <div className="space-y-2 max-h-60 overflow-y-auto">
-                {subject.themes.map((theme) => {
+                {themes.map((theme) => {
                   const completedTopics = theme.topics.filter(t => t.completed).length;
                   const totalTopics = theme.topics.length;
                   const themeProgress = totalTopics > 0 ? (completedTopics / totalTopics) * 100 : 0;
@@ -112,7 +113,7 @@ const ThemePomodoroDialog = ({ open, onClose, subject, onStartPomodoro }: ThemeP
             </div>
           )}
 
-          {subject.themes.length === 0 && (
+          {themes.length === 0 && (
             <p className="text-sm text-muted-foreground text-center">
               Adicione temas à matéria para estudar por temas específicos
             </p>
