@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { BookOpen, Settings, Award, Bell, BellOff, History, Plus, RefreshCw } from "lucide-react";
+import { BookOpen, Settings, Award, Bell, BellOff, History, Plus, RefreshCw, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StudyCycleChart from "@/components/StudyCycleChart";
 import SubjectCard from "@/components/SubjectCard";
@@ -10,6 +10,7 @@ import WeeklyGoalsWidget from "@/components/WeeklyGoalsWidget";
 import AchievementsDialog from "@/components/AchievementsDialog";
 import SessionCompletionDialog from "@/components/SessionCompletionDialog";
 import StudyHistoryDialog from "@/components/StudyHistoryDialog";
+import StudyStatisticsDialog from "@/components/StudyStatisticsDialog";
 import AddTimeDialog from "@/components/AddTimeDialog";
 import ThemePomodoroDialog from "@/components/ThemePomodoroDialog";
 import { Subject, WeeklyGoal, Achievement, StudySession, Theme } from "@/types/study";
@@ -133,6 +134,7 @@ const Index = () => {
   const [topicsDialogSubject, setTopicsDialogSubject] = useState<Subject | null>(null);
   const [achievementsDialogOpen, setAchievementsDialogOpen] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
+  const [statisticsDialogOpen, setStatisticsDialogOpen] = useState(false);
   const [addTimeDialogOpen, setAddTimeDialogOpen] = useState(false);
   const [cycleCount, setCycleCount] = useState(0);
   
@@ -404,6 +406,14 @@ const Index = () => {
             <Button
               variant="outline"
               size="icon"
+              onClick={() => setStatisticsDialogOpen(true)}
+              title="Estatísticas"
+            >
+              <BarChart3 className="w-5 h-5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => setAchievementsDialogOpen(true)}
               title="Ver conquistas"
               className="relative"
@@ -515,6 +525,13 @@ const Index = () => {
         onClose={() => setHistoryDialogOpen(false)}
         sessions={sessions}
         onDeleteSession={handleDeleteSession}
+      />
+
+      <StudyStatisticsDialog
+        open={statisticsDialogOpen}
+        onClose={() => setStatisticsDialogOpen(false)}
+        sessions={sessions}
+        subjects={subjects}
       />
 
       <AddTimeDialog
