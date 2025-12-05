@@ -283,16 +283,16 @@ const ManageTopicsDialog = ({ open, onClose, subject, onUpdateSubject }: ManageT
                               <p className="text-sm text-muted-foreground">
                                 {completedTopics}/{totalTopics} tópicos concluídos
                               </p>
-                              {themeTotal > 0 && (
-                                <div className="mt-2 space-y-1">
-                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                    <Clock className="w-3 h-3" />
-                                    <span>{formatTime(themeStudied)} / {formatTime(themeTotal)}</span>
+                              <div className="mt-2 space-y-1">
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                  <Clock className="w-3 h-3" />
+                                  <span>{formatTime(themeStudied)} / {themeTotal > 0 ? formatTime(themeTotal) : '--'}</span>
+                                  {themeTotal > 0 && (
                                     <span className="font-medium">({Math.round(themeProgress)}%)</span>
-                                  </div>
-                                  <Progress value={themeProgress} className="h-1.5" />
+                                  )}
                                 </div>
-                              )}
+                                <Progress value={themeProgress} className="h-1.5" />
+                              </div>
                             </div>
                           </div>
                           <div className="flex items-center gap-1">

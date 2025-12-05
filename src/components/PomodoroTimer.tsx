@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Play, Pause, RotateCcw, X, Settings2, Check } from "lucide-react";
+import { Play, Pause, RotateCcw, X, Settings2, Check, Square } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Subject } from "@/types/study";
 import { Label } from "@/components/ui/label";
@@ -239,6 +239,7 @@ const PomodoroTimer = ({ subject, themeName, onClose, onSessionComplete }: Pomod
                   size="icon"
                   onClick={resetTimer}
                   className="h-12 w-12"
+                  title="Reiniciar timer"
                 >
                   <RotateCcw className="w-5 h-5" />
                 </Button>
@@ -258,6 +259,15 @@ const PomodoroTimer = ({ subject, themeName, onClose, onSessionComplete }: Pomod
                       Iniciar
                     </>
                   )}
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  onClick={onClose}
+                  className="h-12 w-12"
+                  title="Parar e sair (sem salvar)"
+                >
+                  <Square className="w-5 h-5" />
                 </Button>
                 {completedFocusSessions > 0 && (
                   <Button
