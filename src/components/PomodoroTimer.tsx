@@ -25,7 +25,10 @@ const PomodoroTimer = ({ subject, themeName, onClose, onSessionComplete }: Pomod
   const [showSettings, setShowSettings] = useState(false);
   const [completedFocusSessions, setCompletedFocusSessions] = useState(0);
   const [totalBreakTime, setTotalBreakTime] = useState(0);
+  const [totalPauseTime, setTotalPauseTime] = useState(0); // Time spent with timer paused
+  const [currentFocusElapsed, setCurrentFocusElapsed] = useState(0); // Seconds elapsed in current focus session
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const pauseStartRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!isRunning) {
@@ -39,16 +42,24 @@ const PomodoroTimer = ({ subject, themeName, onClose, onSessionComplete }: Pomod
     if (subject) {
       setCompletedFocusSessions(0);
       setTotalBreakTime(0);
+      setTotalPauseTime(0);
+      setCurrentFocusElapsed(0);
       setIsBreak(false);
       setIsRunning(false);
       setMinutes(workTime);
       setSeconds(0);
+      pauseStartRef.current = null;
     }
   }, [subject?.name]);
 
   useEffect(() => {
     if (isRunning) {
       intervalRef.current = setInterval(() => {
+        // Track elapsed time in current focus session
+        if (!isBreak) {
+          setCurrentFocusElapsed(prev => prev + 1);
+        }
+        
         setSeconds((prev) => {
           if (prev === 0) {
             setMinutes((prevMin) => {
@@ -79,6 +90,7 @@ const PomodoroTimer = ({ subject, themeName, onClose, onSessionComplete }: Pomod
     if (!isBreak) {
       // Completed a focus session
       setCompletedFocusSessions(prev => prev + 1);
+      setCurrentFocusElapsed(0); // Reset for next session
       playPomodoroEndSound();
     } else {
       // Completed a break session
@@ -89,6 +101,17 @@ const PomodoroTimer = ({ subject, themeName, onClose, onSessionComplete }: Pomod
   };
 
   const toggleTimer = () => {
+    if (isRunning) {
+      // Pausing - record pause start time
+      pauseStartRef.current = Date.now();
+    } else {
+      // Resuming - add pause duration
+      if (pauseStartRef.current) {
+        const pauseDuration = Math.floor((Date.now() - pauseStartRef.current) / 1000);
+        setTotalPauseTime(prev => prev + pauseDuration);
+        pauseStartRef.current = null;
+      }
+    }
     setIsRunning(!isRunning);
   };
 
@@ -101,15 +124,45 @@ const PomodoroTimer = ({ subject, themeName, onClose, onSessionComplete }: Pomod
   const handleFinishSession = () => {
     if (subject && onSessionComplete && completedFocusSessions > 0) {
       const totalFocusMinutes = completedFocusSessions * workTime;
-      onSessionComplete(subject.name, subject.color, totalFocusMinutes, totalBreakTime, themeName);
+      const pauseMinutes = Math.floor(totalPauseTime / 60);
+      onSessionComplete(subject.name, subject.color, totalFocusMinutes, totalBreakTime + pauseMinutes, themeName);
     }
+    resetAllState();
+    onClose();
+  };
+
+  const handleStopAndSave = () => {
+    if (subject && onSessionComplete) {
+      // Calculate total focus time: completed sessions + current partial session
+      const completedMinutes = completedFocusSessions * workTime;
+      const partialMinutes = Math.floor(currentFocusElapsed / 60);
+      const totalFocusMinutes = completedMinutes + partialMinutes;
+      
+      // Add current pause if timer is paused
+      let finalPauseTime = totalPauseTime;
+      if (pauseStartRef.current) {
+        finalPauseTime += Math.floor((Date.now() - pauseStartRef.current) / 1000);
+      }
+      const pauseMinutes = Math.floor(finalPauseTime / 60);
+      
+      if (totalFocusMinutes > 0) {
+        onSessionComplete(subject.name, subject.color, totalFocusMinutes, totalBreakTime + pauseMinutes, themeName);
+      }
+    }
+    resetAllState();
+    onClose();
+  };
+
+  const resetAllState = () => {
     setCompletedFocusSessions(0);
     setTotalBreakTime(0);
+    setTotalPauseTime(0);
+    setCurrentFocusElapsed(0);
     setIsBreak(false);
     setIsRunning(false);
     setMinutes(workTime);
     setSeconds(0);
-    onClose();
+    pauseStartRef.current = null;
   };
 
   const totalSeconds = (isBreak ? breakTime : workTime) * 60;
@@ -216,7 +269,7 @@ const PomodoroTimer = ({ subject, themeName, onClose, onSessionComplete }: Pomod
               <Progress value={progress} className="h-2" />
 
               {/* Session Stats */}
-              {completedFocusSessions > 0 && (
+              {(completedFocusSessions > 0 || currentFocusElapsed > 0 || totalPauseTime > 0) && (
                 <div className="flex justify-center gap-4 text-sm">
                   <div className="text-center">
                     <p className="text-muted-foreground">Sessões</p>
@@ -224,11 +277,17 @@ const PomodoroTimer = ({ subject, themeName, onClose, onSessionComplete }: Pomod
                   </div>
                   <div className="text-center">
                     <p className="text-muted-foreground">Foco Total</p>
-                    <p className="font-semibold text-primary">{completedFocusSessions * workTime}m</p>
+                    <p className="font-semibold text-primary">
+                      {completedFocusSessions * workTime + Math.floor(currentFocusElapsed / 60)}m
+                    </p>
                   </div>
                   <div className="text-center">
-                    <p className="text-muted-foreground">Pausas Total</p>
+                    <p className="text-muted-foreground">Descanso</p>
                     <p className="font-semibold text-warning">{totalBreakTime}m</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-muted-foreground">Pausado</p>
+                    <p className="font-semibold text-muted-foreground">{Math.floor(totalPauseTime / 60)}m</p>
                   </div>
                 </div>
               )}
@@ -263,9 +322,9 @@ const PomodoroTimer = ({ subject, themeName, onClose, onSessionComplete }: Pomod
                 <Button
                   variant="destructive"
                   size="icon"
-                  onClick={onClose}
+                  onClick={handleStopAndSave}
                   className="h-12 w-12"
-                  title="Parar e sair (sem salvar)"
+                  title="Parar e salvar sessão"
                 >
                   <Square className="w-5 h-5" />
                 </Button>
