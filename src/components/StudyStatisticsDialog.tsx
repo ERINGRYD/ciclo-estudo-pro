@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
-import { BarChart3, Calendar, TrendingUp, Target } from "lucide-react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend, AreaChart, Area, LineChart, Line } from "recharts";
+import { BarChart3, Calendar, TrendingUp, Target, Flame, CheckCircle } from "lucide-react";
 import { StudySession, Subject } from "@/types/study";
-import { format, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, subDays, subWeeks, subMonths, isWithinInterval, isSameDay, addDays } from "date-fns";
+import { format, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, subDays, subWeeks, subMonths, isWithinInterval, isSameDay, addDays, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 interface StudyStatisticsDialogProps {
@@ -139,6 +139,69 @@ const StudyStatisticsDialog = ({ open, onClose, sessions, subjects }: StudyStati
     }).filter(s => s.meta > 0);
   }, [subjects]);
 
+  // Consistency data - last 30 days
+  const consistencyData = useMemo(() => {
+    const today = new Date();
+    const days = Array.from({ length: 30 }, (_, i) => subDays(today, 29 - i));
+    
+    return days.map(day => {
+      const daySessions = sessions.filter(s => isSameDay(parseISO(s.date), day));
+      const focusMinutes = daySessions.reduce((sum, s) => sum + s.focusMinutes, 0);
+      const hasStudied = focusMinutes > 0;
+      
+      return {
+        date: format(day, "dd/MM"),
+        dayName: format(day, "EEE", { locale: ptBR }),
+        foco: focusMinutes,
+        hasStudied,
+        fullDate: day,
+      };
+    });
+  }, [sessions]);
+
+  // Calculate streak and consistency stats
+  const consistencyStats = useMemo(() => {
+    const today = new Date();
+    let currentStreak = 0;
+    let longestStreak = 0;
+    let tempStreak = 0;
+    
+    // Calculate current streak (going backwards from today)
+    for (let i = 0; i < 365; i++) {
+      const day = subDays(today, i);
+      const daySessions = sessions.filter(s => isSameDay(parseISO(s.date), day));
+      if (daySessions.length > 0) {
+        currentStreak++;
+      } else {
+        break;
+      }
+    }
+    
+    // Calculate longest streak in last 30 days
+    consistencyData.forEach((day) => {
+      if (day.hasStudied) {
+        tempStreak++;
+        longestStreak = Math.max(longestStreak, tempStreak);
+      } else {
+        tempStreak = 0;
+      }
+    });
+    
+    const daysStudied = consistencyData.filter(d => d.hasStudied).length;
+    const consistencyPercent = Math.round((daysStudied / 30) * 100);
+    const avgMinutesPerDay = Math.round(
+      consistencyData.reduce((sum, d) => sum + d.foco, 0) / 30
+    );
+    
+    return {
+      currentStreak,
+      longestStreak,
+      daysStudied,
+      consistencyPercent,
+      avgMinutesPerDay,
+    };
+  }, [sessions, consistencyData]);
+
   // Total stats
   const totalStats = useMemo(() => {
     const totalFocus = sessions.reduce((sum, s) => sum + s.focusMinutes, 0);
@@ -201,6 +264,119 @@ const StudyStatisticsDialog = ({ open, onClose, sessions, subjects }: StudyStati
             <div className="bg-muted rounded-lg p-4 text-center">
               <p className="text-xs text-muted-foreground">Sessões</p>
               <p className="text-xl font-bold text-foreground">{totalStats.totalSessions}</p>
+            </div>
+          </div>
+
+          {/* Consistency Chart */}
+          <div className="space-y-4">
+            <h3 className="font-semibold text-foreground flex items-center gap-2">
+              <Flame className="w-4 h-4 text-orange-500" />
+              Consistência de Estudo (Últimos 30 dias)
+            </h3>
+
+            {/* Consistency Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              <div className="bg-orange-500/10 rounded-lg p-3 text-center">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Flame className="w-4 h-4 text-orange-500" />
+                </div>
+                <p className="text-lg font-bold text-orange-500">{consistencyStats.currentStreak}</p>
+                <p className="text-xs text-muted-foreground">Sequência Atual</p>
+              </div>
+              <div className="bg-primary/10 rounded-lg p-3 text-center">
+                <p className="text-lg font-bold text-primary">{consistencyStats.longestStreak}</p>
+                <p className="text-xs text-muted-foreground">Maior Sequência</p>
+              </div>
+              <div className="bg-success/10 rounded-lg p-3 text-center">
+                <p className="text-lg font-bold text-success">{consistencyStats.daysStudied}/30</p>
+                <p className="text-xs text-muted-foreground">Dias Estudados</p>
+              </div>
+              <div className="bg-muted rounded-lg p-3 text-center">
+                <p className="text-lg font-bold text-foreground">{consistencyStats.consistencyPercent}%</p>
+                <p className="text-xs text-muted-foreground">Consistência</p>
+              </div>
+              <div className="bg-muted rounded-lg p-3 text-center">
+                <p className="text-lg font-bold text-foreground">{formatTime(consistencyStats.avgMinutesPerDay)}</p>
+                <p className="text-xs text-muted-foreground">Média/Dia</p>
+              </div>
+            </div>
+
+            {/* Heatmap-style grid */}
+            <div className="space-y-2">
+              <p className="text-xs text-muted-foreground">Mapa de atividade</p>
+              <div className="flex flex-wrap gap-1">
+                {consistencyData.map((day, index) => (
+                  <div
+                    key={index}
+                    className="w-6 h-6 rounded-sm flex items-center justify-center text-[8px] font-medium transition-all hover:scale-125 cursor-default"
+                    style={{
+                      backgroundColor: day.hasStudied 
+                        ? `hsl(var(--primary) / ${Math.min(0.3 + (day.foco / 120) * 0.7, 1)})` 
+                        : 'hsl(var(--muted))',
+                      color: day.hasStudied ? 'hsl(var(--primary-foreground))' : 'hsl(var(--muted-foreground))',
+                    }}
+                    title={`${format(day.fullDate, "dd/MM/yyyy")}: ${day.foco > 0 ? formatTime(day.foco) : 'Sem estudo'}`}
+                  >
+                    {day.hasStudied && <CheckCircle className="w-3 h-3" />}
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center justify-end gap-2 text-xs text-muted-foreground">
+                <span>Menos</span>
+                <div className="flex gap-0.5">
+                  <div className="w-3 h-3 rounded-sm bg-muted" />
+                  <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(var(--primary) / 0.3)' }} />
+                  <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(var(--primary) / 0.6)' }} />
+                  <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(var(--primary) / 1)' }} />
+                </div>
+                <span>Mais</span>
+              </div>
+            </div>
+
+            {/* Area Chart for daily evolution */}
+            <div className="h-[200px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={consistencyData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorFoco" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0.1}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                  <XAxis 
+                    dataKey="date" 
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                    tickLine={{ stroke: 'hsl(var(--border))' }}
+                    interval={4}
+                  />
+                  <YAxis 
+                    tickFormatter={(value) => value > 60 ? `${Math.round(value / 60)}h` : `${value}m`}
+                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+                    tickLine={{ stroke: 'hsl(var(--border))' }}
+                  />
+                  <Tooltip 
+                    content={({ active, payload, label }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
+                            <p className="font-medium text-foreground mb-1">{label}</p>
+                            <p className="text-sm text-primary">Foco: {formatTime(payload[0].value as number)}</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="foco" 
+                    stroke="hsl(var(--primary))" 
+                    fillOpacity={1} 
+                    fill="url(#colorFoco)" 
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </div>
 
