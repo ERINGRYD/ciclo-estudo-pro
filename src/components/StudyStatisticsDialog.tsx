@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
-import { BarChart3, Calendar, TrendingUp } from "lucide-react";
+import { BarChart3, Calendar, TrendingUp, Target } from "lucide-react";
 import { StudySession, Subject } from "@/types/study";
 import { format, parseISO, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, subDays, subWeeks, subMonths, isWithinInterval, isSameDay, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -121,6 +121,24 @@ const StudyStatisticsDialog = ({ open, onClose, sessions, subjects }: StudyStati
       .sort((a, b) => b.value - a.value);
   }, [sessions]);
 
+  // Goals vs Actual comparison
+  const goalsComparison = useMemo(() => {
+    return subjects.map(subject => {
+      const totalGoal = subject.totalMinutes;
+      const actual = subject.studiedMinutes;
+      const percentage = totalGoal > 0 ? Math.round((actual / totalGoal) * 100) : 0;
+      
+      return {
+        name: subject.abbreviation || subject.name.substring(0, 6),
+        fullName: subject.name,
+        meta: totalGoal,
+        real: actual,
+        percentage,
+        color: subject.color,
+      };
+    }).filter(s => s.meta > 0);
+  }, [subjects]);
+
   // Total stats
   const totalStats = useMemo(() => {
     const totalFocus = sessions.reduce((sum, s) => sum + s.focusMinutes, 0);
@@ -223,6 +241,82 @@ const StudyStatisticsDialog = ({ open, onClose, sessions, subjects }: StudyStati
               </ResponsiveContainer>
             </div>
           </div>
+
+          {/* Goals vs Actual Comparison */}
+          {goalsComparison.length > 0 && (
+            <div className="space-y-4">
+              <h3 className="font-semibold text-foreground flex items-center gap-2">
+                <Target className="w-4 h-4" />
+                Metas vs Tempo Real
+              </h3>
+              
+              <div className="h-[300px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={goalsComparison} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                    <XAxis 
+                      dataKey="name" 
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      tickLine={{ stroke: 'hsl(var(--border))' }}
+                    />
+                    <YAxis 
+                      tickFormatter={(value) => `${Math.round(value / 60)}h`}
+                      tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                      tickLine={{ stroke: 'hsl(var(--border))' }}
+                    />
+                    <Tooltip 
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
+                              <p className="font-medium text-foreground mb-2">{data.fullName}</p>
+                              <p className="text-sm text-muted-foreground">Meta: {formatTime(data.meta)}</p>
+                              <p className="text-sm text-primary">Real: {formatTime(data.real)}</p>
+                              <p className="text-sm font-medium" style={{ color: data.percentage >= 100 ? 'hsl(var(--success))' : 'hsl(var(--warning))' }}>
+                                {data.percentage}% concluído
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Bar dataKey="meta" name="Meta" fill="hsl(var(--muted-foreground))" radius={[4, 4, 0, 0]} opacity={0.5} />
+                    <Bar dataKey="real" name="Real" radius={[4, 4, 0, 0]}>
+                      {goalsComparison.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Progress list */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {goalsComparison.map((subject) => (
+                  <div key={subject.fullName} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full" 
+                        style={{ backgroundColor: subject.color }}
+                      />
+                      <span className="text-sm text-foreground truncate max-w-[120px]">{subject.fullName}</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-xs text-muted-foreground">{formatTime(subject.real)} / {formatTime(subject.meta)}</span>
+                      <span 
+                        className="ml-2 text-xs font-bold"
+                        style={{ color: subject.percentage >= 100 ? 'hsl(var(--success))' : subject.percentage >= 50 ? 'hsl(var(--warning))' : 'hsl(var(--destructive))' }}
+                      >
+                        {subject.percentage}%
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Subject Distribution */}
           {subjectDistribution.length > 0 && (
