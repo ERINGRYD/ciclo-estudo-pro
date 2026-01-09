@@ -13,6 +13,7 @@ import StudyHistoryDialog from "@/components/StudyHistoryDialog";
 import StudyStatisticsDialog from "@/components/StudyStatisticsDialog";
 import AddTimeDialog from "@/components/AddTimeDialog";
 import ThemePomodoroDialog from "@/components/ThemePomodoroDialog";
+import BottomNav from "@/components/BottomNav";
 import { Subject, WeeklyGoal, Achievement, StudySession, Theme } from "@/types/study";
 import { ACHIEVEMENTS, checkAchievements } from "@/lib/achievements";
 import { useToast } from "@/hooks/use-toast";
@@ -560,6 +561,8 @@ const Index = () => {
         onClose={() => setAchievementsDialogOpen(false)}
         achievements={achievements}
       />
+
+      <BottomNav />
     </div>
   );
 };
