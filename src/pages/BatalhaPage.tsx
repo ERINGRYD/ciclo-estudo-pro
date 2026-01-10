@@ -1,4 +1,5 @@
 import BottomNav from "@/components/BottomNav";
+import QuestionBattleDialog from "@/components/QuestionBattleDialog";
 import { Search, Flame, Users, AlertTriangle, CheckCircle, Heart, Zap, Clock, Calendar, History, Shield, Lock, Trophy, Crown } from "lucide-react";
 import { useState } from "react";
 
@@ -7,6 +8,13 @@ type TabType = "linha-de-frente" | "triagem" | "vencidos";
 const BatalhaPage = () => {
   const [activeTab, setActiveTab] = useState<TabType>("linha-de-frente");
   const [searchQuery, setSearchQuery] = useState("");
+  const [battleDialogOpen, setBattleDialogOpen] = useState(false);
+  const [currentBattle, setCurrentBattle] = useState<{ name: string; subject: string }>({ name: "", subject: "" });
+
+  const handleStartBattle = (enemyName: string, subject: string) => {
+    setCurrentBattle({ name: enemyName, subject });
+    setBattleDialogOpen(true);
+  };
 
   return (
     <div className="min-h-screen bg-[#F9FAFB] dark:bg-[#0B1120] text-foreground pb-24">
@@ -375,7 +383,10 @@ const BatalhaPage = () => {
                   <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">0</span>
                 </div>
               </div>
-              <button className="w-full bg-primary hover:bg-primary/90 text-white text-sm font-bold py-3 rounded-2xl shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-[0.98]">
+              <button 
+                onClick={() => handleStartBattle("Gramática", "Português")}
+                className="w-full bg-primary hover:bg-primary/90 text-white text-sm font-bold py-3 rounded-2xl shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-[0.98]"
+              >
                 <Shield className="w-4 h-4" />
                 Iniciar Batalha
               </button>
@@ -562,6 +573,12 @@ const BatalhaPage = () => {
         </section>
       </main>
 
+      <QuestionBattleDialog 
+        open={battleDialogOpen} 
+        onOpenChange={setBattleDialogOpen}
+        enemyName={currentBattle.name}
+        subject={currentBattle.subject}
+      />
       <BottomNav />
     </div>
   );
