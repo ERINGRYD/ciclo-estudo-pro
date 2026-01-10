@@ -141,148 +141,392 @@ const BatalhaPage = () => {
           </button>
         </div>
 
-        {/* Enemy Cards Section */}
-        <section className="space-y-4">
-          {/* Critical Enemy Card - Logaritmos */}
-          <div className="relative bg-white dark:bg-gray-800 rounded-3xl border border-red-200 dark:border-red-900/50 shadow-lg shadow-red-500/5 p-5 flex flex-col overflow-hidden">
-            <div className="absolute top-5 right-5 z-10">
-              <AlertTriangle className="w-6 h-6 text-red-500" />
-            </div>
-            <div className="flex flex-col items-center w-full mb-4 pt-2">
-              <div className="w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500 dark:text-red-400 mb-3 ring-4 ring-red-50/50 dark:ring-red-900/10">
-                <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
-                </svg>
+        {/* Enemy Cards Section - Linha de Frente */}
+        {activeTab === "linha-de-frente" && (
+          <section className="space-y-4">
+            {/* Critical Enemy Card - Logaritmos */}
+            <div className="relative bg-white dark:bg-gray-800 rounded-3xl border border-red-200 dark:border-red-900/50 shadow-lg shadow-red-500/5 p-5 flex flex-col overflow-hidden">
+              <div className="absolute top-5 right-5 z-10">
+                <AlertTriangle className="w-6 h-6 text-red-500" />
               </div>
-              <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">Matemática</span>
-              <h3 className="text-xl font-black text-gray-900 dark:text-white text-center leading-tight">Logaritmos</h3>
-              <p className="text-[10px] text-gray-400 font-medium mt-0.5">Nível 5</p>
-            </div>
-            <div className="w-full h-1 bg-red-100 dark:bg-red-900/20 rounded-full mb-5 overflow-hidden">
-              <div className="h-full bg-red-500 rounded-full w-2/3"></div>
-            </div>
-            <div className="grid grid-cols-3 gap-2 w-full mb-5 divide-x divide-gray-100 dark:divide-gray-700">
-              <div className="text-center px-1">
-                <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Questões</span>
-                <span className="block text-base font-bold text-gray-700 dark:text-gray-200">5</span>
-              </div>
-              <div className="text-center px-1">
-                <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Acertos</span>
-                <span className="block text-base font-bold text-gray-700 dark:text-gray-200">0/5</span>
-              </div>
-              <div className="text-center px-1">
-                <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">XP</span>
-                <span className="block text-base font-bold text-gray-700 dark:text-gray-200">0</span>
-              </div>
-            </div>
-            <div className="w-full space-y-2 mb-6 px-2">
-              <div className="flex items-center justify-between text-xs pb-2 border-b border-gray-50 dark:border-gray-800">
-                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                  <Clock className="w-3.5 h-3.5" />
-                  <span className="font-medium">Próxima revisão:</span>
+              <div className="flex flex-col items-center w-full mb-4 pt-2">
+                <div className="w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500 dark:text-red-400 mb-3 ring-4 ring-red-50/50 dark:ring-red-900/10">
+                  <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
+                  </svg>
                 </div>
-                <div className="font-bold text-gray-700 dark:text-gray-300">15/12</div>
+                <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">Matemática</span>
+                <h3 className="text-xl font-black text-gray-900 dark:text-white text-center leading-tight">Logaritmos</h3>
+                <p className="text-[10px] text-gray-400 font-medium mt-0.5">Nível 5</p>
               </div>
-              <div className="flex items-center justify-between text-xs pt-1">
-                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                  <History className="w-3.5 h-3.5" />
-                  <span className="font-medium">Última batalha:</span>
+              <div className="w-full h-1 bg-red-100 dark:bg-red-900/20 rounded-full mb-5 overflow-hidden">
+                <div className="h-full bg-red-500 rounded-full w-2/3"></div>
+              </div>
+              <div className="grid grid-cols-3 gap-2 w-full mb-5 divide-x divide-gray-100 dark:divide-gray-700">
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Questões</span>
+                  <span className="block text-base font-bold text-gray-700 dark:text-gray-200">5</span>
                 </div>
-                <div className="font-medium text-gray-700 dark:text-gray-300">12/12/25</div>
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Acertos</span>
+                  <span className="block text-base font-bold text-gray-700 dark:text-gray-200">0/5</span>
+                </div>
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">XP</span>
+                  <span className="block text-base font-bold text-gray-700 dark:text-gray-200">0</span>
+                </div>
               </div>
+              <div className="w-full space-y-2 mb-6 px-2">
+                <div className="flex items-center justify-between text-xs pb-2 border-b border-gray-50 dark:border-gray-800">
+                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                    <Clock className="w-3.5 h-3.5" />
+                    <span className="font-medium">Próxima revisão:</span>
+                  </div>
+                  <div className="font-bold text-gray-700 dark:text-gray-300">15/12</div>
+                </div>
+                <div className="flex items-center justify-between text-xs pt-1">
+                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                    <History className="w-3.5 h-3.5" />
+                    <span className="font-medium">Última batalha:</span>
+                  </div>
+                  <div className="font-medium text-gray-700 dark:text-gray-300">12/12/25</div>
+                </div>
+              </div>
+              <button className="w-full bg-red-500 hover:bg-red-600 text-white text-base font-bold py-3.5 rounded-2xl shadow-lg shadow-red-500/30 flex items-center justify-center gap-2 transition-transform active:scale-[0.98]">
+                <Shield className="w-5 h-5" />
+                Defender
+              </button>
             </div>
-            <button className="w-full bg-red-500 hover:bg-red-600 text-white text-base font-bold py-3.5 rounded-2xl shadow-lg shadow-red-500/30 flex items-center justify-center gap-2 transition-transform active:scale-[0.98]">
-              <Shield className="w-5 h-5" />
-              Defender
-            </button>
-          </div>
 
-          {/* Enemy Card - Termodinâmica */}
-          <div className="relative bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-800 shadow-md p-5 flex flex-col">
-            <div className="absolute top-5 right-5 z-10">
-              <AlertTriangle className="w-6 h-6 text-red-400" />
-            </div>
-            <div className="flex flex-col items-center w-full mb-4 pt-2">
-              <div className="w-14 h-14 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500 dark:text-red-400 mb-3">
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                </svg>
+            {/* Enemy Card - Termodinâmica */}
+            <div className="relative bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-800 shadow-md p-5 flex flex-col">
+              <div className="absolute top-5 right-5 z-10">
+                <AlertTriangle className="w-6 h-6 text-red-400" />
               </div>
-              <span className="text-[10px] font-bold text-pink-500 uppercase tracking-widest mb-1">Física</span>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center leading-tight">Termodinâmica</h3>
-              <p className="text-[10px] text-gray-400 font-medium mt-0.5">Nível 3</p>
-            </div>
-            <div className="w-full h-1 bg-gray-100 dark:bg-gray-800 rounded-full mb-5 overflow-hidden">
-              <div className="h-full bg-red-500 rounded-full w-3/5"></div>
-            </div>
-            <div className="grid grid-cols-3 gap-2 w-full mb-4 divide-x divide-gray-100 dark:divide-gray-700">
-              <div className="text-center px-1">
-                <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Questões</span>
-                <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">5</span>
-              </div>
-              <div className="text-center px-1">
-                <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Acertos</span>
-                <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">3/5</span>
-              </div>
-              <div className="text-center px-1">
-                <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">XP</span>
-                <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">55</span>
-              </div>
-            </div>
-            <div className="w-full space-y-2 mb-5 px-2">
-              <div className="flex items-center justify-between text-xs pb-2 border-b border-gray-50 dark:border-gray-800">
-                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                  <Calendar className="w-3.5 h-3.5" />
-                  <span className="font-medium">Próxima revisão:</span>
+              <div className="flex flex-col items-center w-full mb-4 pt-2">
+                <div className="w-14 h-14 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-500 dark:text-red-400 mb-3">
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                  </svg>
                 </div>
-                <div className="bg-red-50 text-red-600 px-2 py-0.5 rounded text-[10px] font-bold">16/12</div>
+                <span className="text-[10px] font-bold text-pink-500 uppercase tracking-widest mb-1">Física</span>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center leading-tight">Termodinâmica</h3>
+                <p className="text-[10px] text-gray-400 font-medium mt-0.5">Nível 3</p>
               </div>
-              <div className="flex items-center justify-between text-xs pt-1">
-                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                  <History className="w-3.5 h-3.5" />
-                  <span className="font-medium">Última batalha:</span>
+              <div className="w-full h-1 bg-gray-100 dark:bg-gray-800 rounded-full mb-5 overflow-hidden">
+                <div className="h-full bg-red-500 rounded-full w-3/5"></div>
+              </div>
+              <div className="grid grid-cols-3 gap-2 w-full mb-4 divide-x divide-gray-100 dark:divide-gray-700">
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Questões</span>
+                  <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">5</span>
                 </div>
-                <div className="font-medium text-gray-700 dark:text-gray-300">Ontem</div>
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Acertos</span>
+                  <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">3/5</span>
+                </div>
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">XP</span>
+                  <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">55</span>
+                </div>
               </div>
+              <div className="w-full space-y-2 mb-5 px-2">
+                <div className="flex items-center justify-between text-xs pb-2 border-b border-gray-50 dark:border-gray-800">
+                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span className="font-medium">Próxima revisão:</span>
+                  </div>
+                  <div className="bg-red-50 text-red-600 px-2 py-0.5 rounded text-[10px] font-bold">16/12</div>
+                </div>
+                <div className="flex items-center justify-between text-xs pt-1">
+                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                    <History className="w-3.5 h-3.5" />
+                    <span className="font-medium">Última batalha:</span>
+                  </div>
+                  <div className="font-medium text-gray-700 dark:text-gray-300">Ontem</div>
+                </div>
+              </div>
+              <button className="w-full bg-red-500 hover:bg-red-600 text-white text-sm font-bold py-3 rounded-2xl shadow-sm shadow-red-500/20 flex items-center justify-center gap-2 transition-transform active:scale-[0.98]">
+                <Shield className="w-4 h-4" />
+                Defender
+              </button>
             </div>
-            <button className="w-full bg-red-500 hover:bg-red-600 text-white text-sm font-bold py-3 rounded-2xl shadow-sm shadow-red-500/20 flex items-center justify-center gap-2 transition-transform active:scale-[0.98]">
-              <Shield className="w-4 h-4" />
-              Defender
-            </button>
-          </div>
+          </section>
+        )}
 
-          {/* Locked Card - Sintaxe */}
-          <div className="relative bg-white dark:bg-gray-800 rounded-3xl border-2 border-yellow-400 shadow-md p-5 flex flex-col overflow-hidden">
-            <div className="absolute inset-0 z-20 bg-white/60 dark:bg-gray-900/60 backdrop-blur-[2px] flex items-center justify-center p-4">
-              <div className="bg-red-500 text-white p-4 py-3.5 rounded-2xl shadow-xl shadow-red-500/30 flex flex-col items-center justify-center min-w-[200px] hover:scale-105 transition-transform duration-300">
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <Lock className="w-5 h-5" />
-                  <span className="font-black text-sm tracking-wide">BLOQUEADO</span>
+        {/* Enemy Cards Section - Triagem */}
+        {activeTab === "triagem" && (
+          <section className="space-y-4">
+            {/* Locked Card - Sintaxe */}
+            <div className="relative bg-white dark:bg-gray-800 rounded-3xl border-2 border-yellow-400 shadow-md p-5 flex flex-col overflow-hidden">
+              <div className="absolute inset-0 z-20 bg-white/60 dark:bg-gray-900/60 backdrop-blur-[2px] flex items-center justify-center p-4">
+                <div className="bg-red-500 text-white p-4 py-3.5 rounded-2xl shadow-xl shadow-red-500/30 flex flex-col items-center justify-center min-w-[200px] hover:scale-105 transition-transform duration-300">
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <Lock className="w-5 h-5" />
+                    <span className="font-black text-sm tracking-wide">BLOQUEADO</span>
+                  </div>
+                  <p className="text-[11px] font-bold opacity-90">Até 15/12 • Revisão 2/5</p>
                 </div>
-                <p className="text-[11px] font-bold opacity-90">Até 15/12 • Revisão 2/5</p>
               </div>
-            </div>
-            <div className="absolute top-5 right-5 z-10 text-yellow-500 opacity-30">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
-            <div className="flex flex-col items-center w-full mb-4 pt-2 opacity-40 grayscale-[0.5]">
-              <div className="w-14 h-14 rounded-full bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center text-yellow-600 dark:text-yellow-400 mb-3">
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/>
-                </svg>
+              <div className="absolute top-5 right-5 z-10 text-yellow-500 opacity-30">
+                <AlertTriangle className="w-6 h-6" />
               </div>
-              <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest mb-1">Português</span>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center leading-tight">Sintaxe</h3>
+              <div className="flex flex-col items-center w-full mb-4 pt-2 opacity-40 grayscale-[0.5]">
+                <div className="w-14 h-14 rounded-full bg-yellow-100 dark:bg-yellow-900/20 flex items-center justify-center text-yellow-600 dark:text-yellow-400 mb-3">
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/>
+                  </svg>
+                </div>
+                <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest mb-1">Português</span>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center leading-tight">Sintaxe</h3>
+              </div>
+              <div className="w-full h-1 bg-gray-100 dark:bg-gray-800 rounded-full mb-5 overflow-hidden opacity-40">
+                <div className="h-full bg-yellow-500 rounded-full w-1/4"></div>
+              </div>
+              <button className="w-full bg-yellow-500 text-white text-sm font-bold py-3 rounded-2xl shadow-sm flex items-center justify-center gap-2 opacity-30 cursor-not-allowed">
+                <Zap className="w-4 h-4" />
+                Finalizar
+              </button>
             </div>
-            <div className="w-full h-1 bg-gray-100 dark:bg-gray-800 rounded-full mb-5 overflow-hidden opacity-40">
-              <div className="h-full bg-yellow-500 rounded-full w-1/4"></div>
+
+            {/* Pending Card - Funções */}
+            <div className="relative bg-white dark:bg-gray-800 rounded-3xl border border-orange-200 dark:border-orange-900/50 shadow-md p-5 flex flex-col">
+              <div className="absolute top-5 right-5 z-10">
+                <Clock className="w-6 h-6 text-orange-500" />
+              </div>
+              <div className="flex flex-col items-center w-full mb-4 pt-2">
+                <div className="w-14 h-14 rounded-full bg-orange-50 dark:bg-orange-900/20 flex items-center justify-center text-orange-500 dark:text-orange-400 mb-3">
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/>
+                  </svg>
+                </div>
+                <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">Matemática</span>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center leading-tight">Funções</h3>
+                <p className="text-[10px] text-gray-400 font-medium mt-0.5">Nível 2</p>
+              </div>
+              <div className="w-full h-1 bg-gray-100 dark:bg-gray-800 rounded-full mb-5 overflow-hidden">
+                <div className="h-full bg-orange-500 rounded-full w-1/2"></div>
+              </div>
+              <div className="grid grid-cols-3 gap-2 w-full mb-4 divide-x divide-gray-100 dark:divide-gray-700">
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Questões</span>
+                  <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">10</span>
+                </div>
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Acertos</span>
+                  <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">5/10</span>
+                </div>
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">XP</span>
+                  <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">120</span>
+                </div>
+              </div>
+              <div className="w-full space-y-2 mb-5 px-2">
+                <div className="flex items-center justify-between text-xs pb-2 border-b border-gray-50 dark:border-gray-800">
+                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span className="font-medium">Próxima revisão:</span>
+                  </div>
+                  <div className="bg-orange-50 text-orange-600 px-2 py-0.5 rounded text-[10px] font-bold">20/12</div>
+                </div>
+                <div className="flex items-center justify-between text-xs pt-1">
+                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                    <History className="w-3.5 h-3.5" />
+                    <span className="font-medium">Última batalha:</span>
+                  </div>
+                  <div className="font-medium text-gray-700 dark:text-gray-300">10/12/25</div>
+                </div>
+              </div>
+              <button className="w-full bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold py-3 rounded-2xl shadow-sm shadow-orange-500/20 flex items-center justify-center gap-2 transition-transform active:scale-[0.98]">
+                <Zap className="w-4 h-4" />
+                Revisar
+              </button>
             </div>
-            <button className="w-full bg-yellow-500 text-white text-sm font-bold py-3 rounded-2xl shadow-sm flex items-center justify-center gap-2 opacity-30 cursor-not-allowed">
-              <Zap className="w-4 h-4" />
-              Finalizar
-            </button>
-          </div>
-        </section>
+
+            {/* Pending Card - Gramática */}
+            <div className="relative bg-white dark:bg-gray-800 rounded-3xl border border-gray-200 dark:border-gray-800 shadow-md p-5 flex flex-col">
+              <div className="absolute top-5 right-5 z-10">
+                <Clock className="w-6 h-6 text-gray-400" />
+              </div>
+              <div className="flex flex-col items-center w-full mb-4 pt-2">
+                <div className="w-14 h-14 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-500 dark:text-green-400 mb-3">
+                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0014.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/>
+                  </svg>
+                </div>
+                <span className="text-[10px] font-bold text-green-500 uppercase tracking-widest mb-1">Português</span>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center leading-tight">Gramática</h3>
+                <p className="text-[10px] text-gray-400 font-medium mt-0.5">Nível 1</p>
+              </div>
+              <div className="w-full h-1 bg-gray-100 dark:bg-gray-800 rounded-full mb-5 overflow-hidden">
+                <div className="h-full bg-gray-300 rounded-full w-0"></div>
+              </div>
+              <div className="grid grid-cols-3 gap-2 w-full mb-4 divide-x divide-gray-100 dark:divide-gray-700">
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Questões</span>
+                  <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">0</span>
+                </div>
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Acertos</span>
+                  <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">-</span>
+                </div>
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">XP</span>
+                  <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">0</span>
+                </div>
+              </div>
+              <button className="w-full bg-primary hover:bg-primary/90 text-white text-sm font-bold py-3 rounded-2xl shadow-sm flex items-center justify-center gap-2 transition-transform active:scale-[0.98]">
+                <Shield className="w-4 h-4" />
+                Iniciar Batalha
+              </button>
+            </div>
+          </section>
+        )}
+
+        {/* Enemy Cards Section - Vencidos */}
+        {activeTab === "vencidos" && (
+          <section className="space-y-4">
+            {/* Defeated Card - Equações */}
+            <div className="relative bg-white dark:bg-gray-800 rounded-3xl border border-green-200 dark:border-green-900/50 shadow-md p-5 flex flex-col">
+              <div className="absolute top-5 right-5 z-10">
+                <CheckCircle className="w-6 h-6 text-green-500" />
+              </div>
+              <div className="flex flex-col items-center w-full mb-4 pt-2">
+                <div className="w-14 h-14 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-500 dark:text-green-400 mb-3 ring-4 ring-green-50/50 dark:ring-green-900/10">
+                  <Trophy className="w-6 h-6" />
+                </div>
+                <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">Matemática</span>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center leading-tight">Equações 1º Grau</h3>
+                <p className="text-[10px] text-green-500 font-bold mt-0.5">✓ Dominado</p>
+              </div>
+              <div className="w-full h-1 bg-green-100 dark:bg-green-900/20 rounded-full mb-5 overflow-hidden">
+                <div className="h-full bg-green-500 rounded-full w-full"></div>
+              </div>
+              <div className="grid grid-cols-3 gap-2 w-full mb-4 divide-x divide-gray-100 dark:divide-gray-700">
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Questões</span>
+                  <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">25</span>
+                </div>
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Acertos</span>
+                  <span className="block text-sm font-bold text-green-500">23/25</span>
+                </div>
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">XP</span>
+                  <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">450</span>
+                </div>
+              </div>
+              <div className="w-full space-y-2 mb-5 px-2">
+                <div className="flex items-center justify-between text-xs pb-2 border-b border-gray-50 dark:border-gray-800">
+                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                    <Trophy className="w-3.5 h-3.5" />
+                    <span className="font-medium">Conquistado em:</span>
+                  </div>
+                  <div className="font-bold text-green-600">05/12/25</div>
+                </div>
+                <div className="flex items-center justify-between text-xs pt-1">
+                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                    <Flame className="w-3.5 h-3.5" />
+                    <span className="font-medium">Sequência:</span>
+                  </div>
+                  <div className="font-bold text-orange-500">5 vitórias seguidas</div>
+                </div>
+              </div>
+              <button className="w-full bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-3 rounded-2xl shadow-sm shadow-green-500/20 flex items-center justify-center gap-2 transition-transform active:scale-[0.98]">
+                <History className="w-4 h-4" />
+                Revisar Novamente
+              </button>
+            </div>
+
+            {/* Defeated Card - Cinemática */}
+            <div className="relative bg-white dark:bg-gray-800 rounded-3xl border border-green-200 dark:border-green-900/50 shadow-md p-5 flex flex-col">
+              <div className="absolute top-5 right-5 z-10">
+                <CheckCircle className="w-6 h-6 text-green-500" />
+              </div>
+              <div className="flex flex-col items-center w-full mb-4 pt-2">
+                <div className="w-14 h-14 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-500 dark:text-green-400 mb-3">
+                  <Trophy className="w-6 h-6" />
+                </div>
+                <span className="text-[10px] font-bold text-pink-500 uppercase tracking-widest mb-1">Física</span>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center leading-tight">Cinemática</h3>
+                <p className="text-[10px] text-green-500 font-bold mt-0.5">✓ Dominado</p>
+              </div>
+              <div className="w-full h-1 bg-green-100 dark:bg-green-900/20 rounded-full mb-5 overflow-hidden">
+                <div className="h-full bg-green-500 rounded-full w-full"></div>
+              </div>
+              <div className="grid grid-cols-3 gap-2 w-full mb-4 divide-x divide-gray-100 dark:divide-gray-700">
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Questões</span>
+                  <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">18</span>
+                </div>
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Acertos</span>
+                  <span className="block text-sm font-bold text-green-500">16/18</span>
+                </div>
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">XP</span>
+                  <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">320</span>
+                </div>
+              </div>
+              <div className="w-full space-y-2 mb-5 px-2">
+                <div className="flex items-center justify-between text-xs pb-2 border-b border-gray-50 dark:border-gray-800">
+                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                    <Trophy className="w-3.5 h-3.5" />
+                    <span className="font-medium">Conquistado em:</span>
+                  </div>
+                  <div className="font-bold text-green-600">01/12/25</div>
+                </div>
+                <div className="flex items-center justify-between text-xs pt-1">
+                  <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                    <Flame className="w-3.5 h-3.5" />
+                    <span className="font-medium">Sequência:</span>
+                  </div>
+                  <div className="font-bold text-orange-500">3 vitórias seguidas</div>
+                </div>
+              </div>
+              <button className="w-full bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-3 rounded-2xl shadow-sm shadow-green-500/20 flex items-center justify-center gap-2 transition-transform active:scale-[0.98]">
+                <History className="w-4 h-4" />
+                Revisar Novamente
+              </button>
+            </div>
+
+            {/* Defeated Card - Regra de Três */}
+            <div className="relative bg-white dark:bg-gray-800 rounded-3xl border border-green-200 dark:border-green-900/50 shadow-md p-5 flex flex-col">
+              <div className="absolute top-5 right-5 z-10">
+                <CheckCircle className="w-6 h-6 text-green-500" />
+              </div>
+              <div className="flex flex-col items-center w-full mb-4 pt-2">
+                <div className="w-14 h-14 rounded-full bg-green-50 dark:bg-green-900/20 flex items-center justify-center text-green-500 dark:text-green-400 mb-3">
+                  <Trophy className="w-6 h-6" />
+                </div>
+                <span className="text-[10px] font-bold text-blue-500 uppercase tracking-widest mb-1">Matemática</span>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white text-center leading-tight">Regra de Três</h3>
+                <p className="text-[10px] text-green-500 font-bold mt-0.5">✓ Dominado</p>
+              </div>
+              <div className="w-full h-1 bg-green-100 dark:bg-green-900/20 rounded-full mb-5 overflow-hidden">
+                <div className="h-full bg-green-500 rounded-full w-full"></div>
+              </div>
+              <div className="grid grid-cols-3 gap-2 w-full mb-4 divide-x divide-gray-100 dark:divide-gray-700">
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Questões</span>
+                  <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">15</span>
+                </div>
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Acertos</span>
+                  <span className="block text-sm font-bold text-green-500">14/15</span>
+                </div>
+                <div className="text-center px-1">
+                  <span className="block text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">XP</span>
+                  <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">280</span>
+                </div>
+              </div>
+              <button className="w-full bg-green-500 hover:bg-green-600 text-white text-sm font-bold py-3 rounded-2xl shadow-sm shadow-green-500/20 flex items-center justify-center gap-2 transition-transform active:scale-[0.98]">
+                <History className="w-4 h-4" />
+                Revisar Novamente
+              </button>
+            </div>
+          </section>
+        )}
 
         {/* Chefes de Matéria Section */}
         <section>
