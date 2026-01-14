@@ -60,3 +60,45 @@ export const playBreakEndSound = async () => {
   await new Promise(r => setTimeout(r, 150));
   await createOscillatorSound(523.25, 0.4, 'sine'); // C5
 };
+
+export const playCorrectSound = async () => {
+  // Uplifting correct answer chime - rising notes
+  await createOscillatorSound(523.25, 0.12, 'triangle'); // C5
+  await new Promise(r => setTimeout(r, 60));
+  await createOscillatorSound(659.25, 0.12, 'triangle'); // E5
+  await new Promise(r => setTimeout(r, 60));
+  await createOscillatorSound(783.99, 0.15, 'triangle'); // G5
+  await new Promise(r => setTimeout(r, 60));
+  await createOscillatorSound(1046.50, 0.25, 'triangle'); // C6
+};
+
+export const playIncorrectSound = async () => {
+  // Descending "wrong" sound - falling notes
+  await createOscillatorSound(349.23, 0.15, 'sawtooth'); // F4
+  await new Promise(r => setTimeout(r, 80));
+  await createOscillatorSound(293.66, 0.2, 'sawtooth'); // D4
+  await new Promise(r => setTimeout(r, 80));
+  await createOscillatorSound(246.94, 0.3, 'sawtooth'); // B3
+};
+
+export const playBattleVictorySound = async () => {
+  // Epic victory fanfare
+  await createOscillatorSound(523.25, 0.15, 'triangle'); // C5
+  await new Promise(r => setTimeout(r, 100));
+  await createOscillatorSound(659.25, 0.15, 'triangle'); // E5
+  await new Promise(r => setTimeout(r, 100));
+  await createOscillatorSound(783.99, 0.15, 'triangle'); // G5
+  await new Promise(r => setTimeout(r, 100));
+  await createOscillatorSound(1046.50, 0.2, 'triangle'); // C6
+  await new Promise(r => setTimeout(r, 150));
+  await createOscillatorSound(1318.51, 0.4, 'triangle'); // E6
+};
+
+export const playBattleDefeatSound = async () => {
+  // Sad defeat sound
+  await createOscillatorSound(392, 0.2, 'sine'); // G4
+  await new Promise(r => setTimeout(r, 150));
+  await createOscillatorSound(349.23, 0.2, 'sine'); // F4
+  await new Promise(r => setTimeout(r, 150));
+  await createOscillatorSound(293.66, 0.4, 'sine'); // D4
+};
