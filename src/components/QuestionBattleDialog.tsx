@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { ArrowLeft, Volume2, Zap, Clock, Hourglass, Search, Check } from "lucide-react";
+import { ArrowLeft, Volume2, VolumeX, Zap, Clock, Hourglass, Search, Check } from "lucide-react";
 import { Question, QuestionResult, BattleResult } from "@/types/question";
 import { getQuestionsBySubject, calculateXP } from "@/lib/questions";
 import { useTimer } from "@/hooks/useTimer";
+import { playCorrectSound, playIncorrectSound, playBattleVictorySound, playBattleDefeatSound } from "@/lib/sounds";
 import QuestionFeedback from "./QuestionFeedback";
 import BattleResultDialog from "./BattleResultDialog";
 
@@ -31,6 +32,7 @@ const QuestionBattleDialog = ({
   const [lastResult, setLastResult] = useState<QuestionResult | null>(null);
   const [showBattleResult, setShowBattleResult] = useState(false);
   const [battleResult, setBattleResult] = useState<BattleResult | null>(null);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   const { 
     totalSeconds, 
@@ -60,7 +62,7 @@ const QuestionBattleDialog = ({
   const currentQuestion = questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!selectedOption || !confidenceLevel || !currentQuestion) return;
 
     pauseTimer();
@@ -78,6 +80,15 @@ const QuestionBattleDialog = ({
       timeSpent: questionSeconds,
     };
 
+    // Play feedback sound
+    if (soundEnabled) {
+      if (isCorrect) {
+        playCorrectSound();
+      } else {
+        playIncorrectSound();
+      }
+    }
+
     setLastResult(result);
     setResults((prev) => [...prev, result]);
     setShowFeedback(true);
@@ -91,6 +102,16 @@ const QuestionBattleDialog = ({
       const allResults = [...results, lastResult!];
       const totalXP = allResults.reduce((sum, r) => sum + r.xpEarned, 0);
       const correctAnswers = allResults.filter((r) => r.isCorrect).length;
+
+      // Play victory or defeat sound
+      if (soundEnabled) {
+        const winRate = correctAnswers / questions.length;
+        if (winRate >= 0.6) {
+          playBattleVictorySound();
+        } else {
+          playBattleDefeatSound();
+        }
+      }
 
       setBattleResult({
         totalQuestions: questions.length,
@@ -175,8 +196,15 @@ const QuestionBattleDialog = ({
                   Questão {currentQuestionIndex + 1} de {questions.length}
                 </span>
               </div>
-              <button className="p-2 -mr-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
-                <Volume2 className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              <button 
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className="p-2 -mr-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors"
+              >
+                {soundEnabled ? (
+                  <Volume2 className="w-5 h-5 text-primary" />
+                ) : (
+                  <VolumeX className="w-5 h-5 text-gray-400" />
+                )}
               </button>
             </div>
 
