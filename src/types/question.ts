@@ -27,6 +27,7 @@ export interface BattleConfig {
   subject: string;
   enemyName: string;
   totalQuestions: number;
+  mode?: string;
 }
 
 export interface BattleResult {
@@ -35,4 +36,17 @@ export interface BattleResult {
   totalXP: number;
   totalTime: number;
   results: QuestionResult[];
+}
+
+export interface BattleHistory {
+  id: string;
+  date: string;
+  subject: string;
+  mode: string;
+  totalQuestions: number;
+  correctAnswers: number;
+  xpEarned: number;
+  totalTime: number;
+  isVictory: boolean;
+  wrongQuestionIds: number[];
 }
