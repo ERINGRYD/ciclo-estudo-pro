@@ -5,6 +5,7 @@ import { Question, QuestionResult, BattleResult } from "@/types/question";
 import { getQuestionsBySubject, calculateXP } from "@/lib/questions";
 import { useTimer } from "@/hooks/useTimer";
 import { playCorrectSound, playIncorrectSound, playBattleVictorySound, playBattleDefeatSound } from "@/lib/sounds";
+import { useUserProgress } from "@/hooks/useUserProgress";
 import QuestionFeedback from "./QuestionFeedback";
 import BattleResultDialog from "./BattleResultDialog";
 
@@ -14,6 +15,7 @@ interface QuestionBattleDialogProps {
   enemyName?: string;
   subject?: string;
   questionCount?: number;
+  mode?: string;
 }
 
 const QuestionBattleDialog = ({ 
@@ -21,7 +23,8 @@ const QuestionBattleDialog = ({
   onOpenChange, 
   enemyName = "Gramática", 
   subject = "Português",
-  questionCount = 5 
+  questionCount = 5,
+  mode = "Batalha"
 }: QuestionBattleDialogProps) => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -33,6 +36,8 @@ const QuestionBattleDialog = ({
   const [showBattleResult, setShowBattleResult] = useState(false);
   const [battleResult, setBattleResult] = useState<BattleResult | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  const { recordBattle } = useUserProgress();
 
   const { 
     totalSeconds, 
@@ -112,6 +117,21 @@ const QuestionBattleDialog = ({
           playBattleDefeatSound();
         }
       }
+
+      // Record battle to history and add XP
+      const wrongQuestionIds = allResults
+        .filter(r => !r.isCorrect)
+        .map(r => r.questionId);
+
+      recordBattle(
+        subject,
+        mode,
+        questions.length,
+        correctAnswers,
+        totalXP,
+        totalSeconds,
+        wrongQuestionIds
+      );
 
       setBattleResult({
         totalQuestions: questions.length,

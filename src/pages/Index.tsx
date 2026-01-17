@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { Subject, StudySession, Achievement } from "@/types/study";
 import { ACHIEVEMENTS } from "@/lib/achievements";
+import { useUserProgress } from "@/hooks/useUserProgress";
 import BottomNav from "@/components/BottomNav";
 import UserHeader from "@/components/dashboard/UserHeader";
 import NextActionCard from "@/components/dashboard/NextActionCard";
@@ -18,6 +19,7 @@ const Index = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const { progress } = useUserProgress();
 
   useEffect(() => {
     const savedSubjects = localStorage.getItem(STORAGE_KEY);
@@ -112,9 +114,9 @@ const Index = () => {
       <div className="container mx-auto px-4 py-6 max-w-lg">
         <UserHeader
           userName="Campeão"
-          level={5}
-          levelTitle="Novato"
-          xp={450}
+          level={progress.level}
+          levelTitle={progress.title}
+          xp={progress.xp}
         />
 
         {nextSubject ? (
@@ -135,7 +137,7 @@ const Index = () => {
           streak={streak || 5}
           recordStreak={12}
           focusPercentage={focusPercentage || 85}
-          questionsAnswered={124}
+          questionsAnswered={progress.totalQuestionsAnswered || 124}
           questionsToday={Math.round(todayMinutes / 5) || 12}
           studyHours={totalHours || 26}
         />
