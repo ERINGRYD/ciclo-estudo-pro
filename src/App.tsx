@@ -9,6 +9,9 @@ import BatalhaPage from "./pages/BatalhaPage";
 import ColiseuPage from "./pages/ColiseuPage";
 import MaisPage from "./pages/MaisPage";
 import LojaPage from "./pages/LojaPage";
+import PerfilPage from "./pages/PerfilPage";
+import JornadaPage from "./pages/JornadaPage";
+import ConfiguracoesPage from "./pages/ConfiguracoesPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +29,9 @@ const App = () => (
           <Route path="/coliseu" element={<ColiseuPage />} />
           <Route path="/mais" element={<MaisPage />} />
           <Route path="/loja" element={<LojaPage />} />
+          <Route path="/perfil" element={<PerfilPage />} />
+          <Route path="/jornada" element={<JornadaPage />} />
+          <Route path="/configuracoes" element={<ConfiguracoesPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
