@@ -1,6 +1,7 @@
 import BottomNav from "@/components/BottomNav";
 import { useUserProgress } from "@/hooks/useUserProgress";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useInventory } from "@/hooks/useInventory";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Card } from "@/components/ui/card";
 import { 
@@ -11,11 +12,19 @@ import {
   Medal, 
   TrendingUp,
   Star,
-  Crown
+  Crown,
+  Settings
 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 const PerfilPage = () => {
   const { progress, battleHistory, levelProgress, xpForNextLevel } = useUserProgress();
+  const { getEquippedAvatar, getEquippedTitle, getEquippedTheme } = useInventory();
+
+  const equippedAvatar = getEquippedAvatar();
+  const equippedTitle = getEquippedTitle();
+  const equippedTheme = getEquippedTheme();
 
   const winRate = progress.totalBattles > 0 
     ? Math.round((progress.totalBattleWins / progress.totalBattles) * 100) 
@@ -83,14 +92,17 @@ const PerfilPage = () => {
     },
   ];
 
+  // Get theme colors for header
+  const headerGradient = equippedTheme.colors 
+    ? `linear-gradient(135deg, ${equippedTheme.colors[0]} 0%, ${equippedTheme.colors[1]} 50%, ${equippedTheme.colors[2]} 100%)`
+    : "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--info)) 100%)";
+
   return (
     <div className="min-h-screen bg-background pb-24">
-      {/* Header com gradiente */}
+      {/* Header com gradiente baseado no tema equipado */}
       <div 
         className="relative h-48 flex items-end justify-center pb-16"
-        style={{
-          background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--info)) 100%)"
-        }}
+        style={{ background: headerGradient }}
       >
         <div className="absolute inset-0 opacity-20">
           <div 
@@ -103,24 +115,28 @@ const PerfilPage = () => {
             }}
           />
         </div>
+        <Link to="/configuracoes" className="absolute top-4 right-4">
+          <Button size="icon" variant="ghost" className="text-white hover:bg-white/20">
+            <Settings className="h-5 w-5" />
+          </Button>
+        </Link>
       </div>
 
       {/* Avatar */}
       <div className="relative -mt-16 flex flex-col items-center px-6">
         <Avatar className="w-32 h-32 border-4 border-background shadow-xl">
-          <AvatarImage src="/placeholder.svg" />
-          <AvatarFallback className="bg-primary text-primary-foreground text-3xl font-bold">
-            US
+          <AvatarFallback className="bg-card text-5xl">
+            {equippedAvatar.icon || '👤'}
           </AvatarFallback>
         </Avatar>
 
         <h1 className="mt-4 text-2xl font-bold text-foreground">Usuário</h1>
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex items-center gap-2 mt-1 flex-wrap justify-center">
           <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-medium">
             Nível {progress.level}
           </span>
           <span className="px-3 py-1 rounded-full bg-warning/10 text-warning text-sm font-medium">
-            {progress.title}
+            {equippedTitle.name}
           </span>
         </div>
 
@@ -134,6 +150,31 @@ const PerfilPage = () => {
           <p className="text-center text-xs text-muted-foreground mt-2">
             Faltam {(xpForNextLevel - progress.xp).toLocaleString()} XP para o próximo nível
           </p>
+        </div>
+
+        {/* Itens Equipados */}
+        <div className="w-full max-w-sm mt-4">
+          <Card className="p-3">
+            <p className="text-xs text-muted-foreground mb-2 font-medium">Itens Equipados</p>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 flex-1">
+                <div 
+                  className="w-8 h-8 rounded-lg"
+                  style={{
+                    background: equippedTheme.colors 
+                      ? `linear-gradient(135deg, ${equippedTheme.colors[0]}, ${equippedTheme.colors[2]})`
+                      : 'hsl(var(--muted))',
+                  }}
+                />
+                <span className="text-sm text-foreground">{equippedTheme.name}</span>
+              </div>
+              <Link to="/mais">
+                <Button size="sm" variant="outline" className="text-xs">
+                  Loja
+                </Button>
+              </Link>
+            </div>
+          </Card>
         </div>
       </div>
 
