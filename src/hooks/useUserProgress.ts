@@ -135,6 +135,21 @@ export const useUserProgress = () => {
     });
   }, []);
 
+  // Spend XP (for purchases) - returns true if successful
+  const spendXP = useCallback((amount: number): boolean => {
+    let success = false;
+    setProgress(prev => {
+      if (prev.xp < amount) return prev;
+      success = true;
+      const newXP = prev.xp - amount;
+      const { level, title } = calculateLevelFromXP(newXP);
+      const newProgress = { ...prev, xp: newXP, level, title };
+      localStorage.setItem(USER_PROGRESS_KEY, JSON.stringify(newProgress));
+      return newProgress;
+    });
+    return success;
+  }, []);
+
   // Record a battle result
   const recordBattle = useCallback((
     subject: string,
@@ -201,6 +216,7 @@ export const useUserProgress = () => {
     progress,
     battleHistory,
     addXP,
+    spendXP,
     recordBattle,
     getWrongQuestionIds,
     levelProgress,
