@@ -11,10 +11,13 @@ import {
   Upload, 
   Trash2,
   ChevronRight,
-  Settings
+  Settings,
+  BellRing,
+  TestTube2
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useNotificationScheduler } from "@/hooks/useNotificationScheduler";
 
 interface AppSettings {
   darkMode: boolean;
@@ -35,6 +38,14 @@ const SETTINGS_KEY = "app-settings";
 const ConfiguracoesPage = () => {
   const [settings, setSettings] = useState<AppSettings>(DEFAULT_SETTINGS);
   const { toast } = useToast();
+  const { 
+    permission, 
+    settings: notificationSettings, 
+    requestPermission, 
+    updateSettings: updateNotificationSettings,
+    sendTestNotification,
+    isSupported 
+  } = useNotificationScheduler();
 
   useEffect(() => {
     const saved = localStorage.getItem(SETTINGS_KEY);
@@ -67,11 +78,45 @@ const ConfiguracoesPage = () => {
     });
   };
 
+  const handleRequestNotificationPermission = async () => {
+    const granted = await requestPermission();
+    if (granted) {
+      toast({
+        title: "Notificações ativadas!",
+        description: "Você receberá lembretes sobre suas missões diárias.",
+      });
+    } else {
+      toast({
+        title: "Permissão negada",
+        description: "Você pode ativar nas configurações do navegador.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleTestNotification = () => {
+    if (permission === 'granted') {
+      sendTestNotification();
+      toast({
+        title: "Notificação enviada!",
+        description: "Verifique a notificação do sistema.",
+      });
+    } else {
+      toast({
+        title: "Permissão necessária",
+        description: "Ative as notificações primeiro.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleExportData = () => {
     const data = {
       settings: localStorage.getItem(SETTINGS_KEY),
       progress: localStorage.getItem("user-progress"),
       battleHistory: localStorage.getItem("battle-history"),
+      dailyMissions: localStorage.getItem("daily-missions"),
+      notificationSettings: localStorage.getItem("notification-settings"),
       exportedAt: new Date().toISOString(),
     };
     
@@ -103,6 +148,8 @@ const ConfiguracoesPage = () => {
             if (data.settings) localStorage.setItem(SETTINGS_KEY, data.settings);
             if (data.progress) localStorage.setItem("user-progress", data.progress);
             if (data.battleHistory) localStorage.setItem("battle-history", data.battleHistory);
+            if (data.dailyMissions) localStorage.setItem("daily-missions", data.dailyMissions);
+            if (data.notificationSettings) localStorage.setItem("notification-settings", data.notificationSettings);
             
             toast({
               title: "Dados importados",
@@ -127,6 +174,8 @@ const ConfiguracoesPage = () => {
       localStorage.removeItem(SETTINGS_KEY);
       localStorage.removeItem("user-progress");
       localStorage.removeItem("battle-history");
+      localStorage.removeItem("daily-missions");
+      localStorage.removeItem("notification-settings");
       setSettings(DEFAULT_SETTINGS);
       
       toast({
@@ -184,34 +233,126 @@ const ConfiguracoesPage = () => {
           </Card>
         </div>
 
-        {/* Notificações e Sons */}
+        {/* Notificações Push */}
         <div>
           <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
-            Notificações e Sons
+            Lembretes de Missões
           </h2>
           <Card className="divide-y divide-border">
+            {/* Permission Status */}
             <div className="flex items-center justify-between p-4">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-lg bg-info/10 flex items-center justify-center">
-                  <Bell className="w-5 h-5 text-info" />
+                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
+                  permission === 'granted' ? 'bg-success/10' : 'bg-warning/10'
+                }`}>
+                  <BellRing className={`w-5 h-5 ${
+                    permission === 'granted' ? 'text-success' : 'text-warning'
+                  }`} />
                 </div>
                 <div>
-                  <p className="font-medium text-foreground">Notificações</p>
-                  <p className="text-sm text-muted-foreground">Lembretes de estudo</p>
+                  <p className="font-medium text-foreground">Notificações Push</p>
+                  <p className="text-sm text-muted-foreground">
+                    {!isSupported && "Não suportado neste navegador"}
+                    {isSupported && permission === 'granted' && "Ativado ✓"}
+                    {isSupported && permission === 'denied' && "Bloqueado pelo navegador"}
+                    {isSupported && permission === 'default' && "Não configurado"}
+                  </p>
                 </div>
               </div>
-              <Switch 
-                checked={settings.notifications} 
-                onCheckedChange={(checked) => updateSetting("notifications", checked)}
-              />
+              {isSupported && permission !== 'granted' && permission !== 'denied' && (
+                <Button size="sm" onClick={handleRequestNotificationPermission}>
+                  Ativar
+                </Button>
+              )}
+              {permission === 'granted' && (
+                <Switch 
+                  checked={notificationSettings.enabled} 
+                  onCheckedChange={(checked) => updateNotificationSettings({ enabled: checked })}
+                />
+              )}
             </div>
+
+            {/* Reminder Times */}
+            {permission === 'granted' && (
+              <>
+                <div className="flex items-center justify-between p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-chart-1/10 flex items-center justify-center">
+                      <span className="text-sm">🌅</span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">Lembrete Manhã</p>
+                      <p className="text-sm text-muted-foreground">Entre 8h e 10h</p>
+                    </div>
+                  </div>
+                  <Switch 
+                    checked={notificationSettings.morningReminder} 
+                    onCheckedChange={(checked) => updateNotificationSettings({ morningReminder: checked })}
+                  />
+                </div>
+                <div className="flex items-center justify-between p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-chart-2/10 flex items-center justify-center">
+                      <span className="text-sm">☀️</span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">Lembrete Tarde</p>
+                      <p className="text-sm text-muted-foreground">Entre 13h e 15h</p>
+                    </div>
+                  </div>
+                  <Switch 
+                    checked={notificationSettings.afternoonReminder} 
+                    onCheckedChange={(checked) => updateNotificationSettings({ afternoonReminder: checked })}
+                  />
+                </div>
+                <div className="flex items-center justify-between p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-chart-3/10 flex items-center justify-center">
+                      <span className="text-sm">🌙</span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">Lembrete Noite</p>
+                      <p className="text-sm text-muted-foreground">Entre 19h e 21h</p>
+                    </div>
+                  </div>
+                  <Switch 
+                    checked={notificationSettings.eveningReminder} 
+                    onCheckedChange={(checked) => updateNotificationSettings({ eveningReminder: checked })}
+                  />
+                </div>
+                <button 
+                  onClick={handleTestNotification}
+                  className="flex items-center justify-between p-4 w-full hover:bg-muted/50 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <TestTube2 className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="text-left">
+                      <p className="font-medium text-foreground">Testar Notificação</p>
+                      <p className="text-sm text-muted-foreground">Enviar uma notificação de teste</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </>
+            )}
+          </Card>
+        </div>
+
+        {/* Sons */}
+        <div>
+          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
+            Sons
+          </h2>
+          <Card className="divide-y divide-border">
             <div className="flex items-center justify-between p-4">
               <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
                   <Volume2 className="w-5 h-5 text-success" />
                 </div>
                 <div>
-                  <p className="font-medium text-foreground">Sons</p>
+                  <p className="font-medium text-foreground">Sons do App</p>
                   <p className="text-sm text-muted-foreground">Feedback sonoro nas batalhas</p>
                 </div>
               </div>
@@ -307,6 +448,28 @@ const ConfiguracoesPage = () => {
               </div>
               <ChevronRight className="w-5 h-5 text-muted-foreground" />
             </button>
+          </Card>
+        </div>
+
+        {/* Install PWA */}
+        <div>
+          <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
+            Instalação
+          </h2>
+          <Card className="p-4">
+            <div className="flex items-center gap-4 mb-3">
+              <div className="w-10 h-10 rounded-lg bg-chart-4/10 flex items-center justify-center">
+                <span className="text-lg">📱</span>
+              </div>
+              <div>
+                <p className="font-medium text-foreground">Instalar App</p>
+                <p className="text-sm text-muted-foreground">Adicione à tela inicial do seu dispositivo</p>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              No iPhone: Compartilhar → Adicionar à Tela de Início<br />
+              No Android: Menu do navegador → Instalar app
+            </p>
           </Card>
         </div>
       </div>
