@@ -6,6 +6,7 @@ import { getQuestionsBySubject, calculateXP } from "@/lib/questions";
 import { useTimer } from "@/hooks/useTimer";
 import { playCorrectSound, playIncorrectSound, playBattleVictorySound, playBattleDefeatSound } from "@/lib/sounds";
 import { useUserProgress } from "@/hooks/useUserProgress";
+import { useDailyMissions } from "@/hooks/useDailyMissions";
 import QuestionFeedback from "./QuestionFeedback";
 import BattleResultDialog from "./BattleResultDialog";
 
@@ -37,7 +38,8 @@ const QuestionBattleDialog = ({
   const [battleResult, setBattleResult] = useState<BattleResult | null>(null);
   const [soundEnabled, setSoundEnabled] = useState(true);
 
-  const { recordBattle } = useUserProgress();
+  const { recordBattle, progress } = useUserProgress();
+  const { updateMissionProgress } = useDailyMissions(progress.level);
 
   const { 
     totalSeconds, 
@@ -132,6 +134,14 @@ const QuestionBattleDialog = ({
         totalSeconds,
         wrongQuestionIds
       );
+
+      // Update daily missions
+      updateMissionProgress('questions', questions.length);
+      updateMissionProgress('battles', 1);
+      const winRate = correctAnswers / questions.length;
+      if (winRate >= 0.6) {
+        updateMissionProgress('wins', 1);
+      }
 
       setBattleResult({
         totalQuestions: questions.length,

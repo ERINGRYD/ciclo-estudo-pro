@@ -18,6 +18,8 @@ import { Subject, WeeklyGoal, Achievement, StudySession, Theme } from "@/types/s
 import { ACHIEVEMENTS, checkAchievements } from "@/lib/achievements";
 import { useToast } from "@/hooks/use-toast";
 import { playAchievementSound } from "@/lib/sounds";
+import { useUserProgress } from "@/hooks/useUserProgress";
+import { useDailyMissions } from "@/hooks/useDailyMissions";
 
 const DEFAULT_SUBJECTS: Subject[] = [
   {
@@ -75,6 +77,8 @@ const NOTIFICATIONS_KEY = "study-notifications-enabled";
 
 const CicloPage = () => {
   const { toast } = useToast();
+  const { progress } = useUserProgress();
+  const { updateMissionProgress } = useDailyMissions(progress.level);
   const [subjects, setSubjects] = useState<Subject[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -314,6 +318,10 @@ const CicloPage = () => {
       });
       return checkAndResetCycle(updated);
     });
+
+    // Update daily missions
+    updateMissionProgress('study_time', pendingSession.focusMinutes);
+    updateMissionProgress('sessions', 1);
 
     toast({
       title: "Sessão registrada!",
