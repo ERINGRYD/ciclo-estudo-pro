@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo } from "react";
 import { Subject, StudySession, Achievement } from "@/types/study";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { useUserProgress } from "@/hooks/useUserProgress";
+import { useDailyMissions } from "@/hooks/useDailyMissions";
 import BottomNav from "@/components/BottomNav";
 import UserHeader from "@/components/dashboard/UserHeader";
 import NextActionCard from "@/components/dashboard/NextActionCard";
@@ -20,6 +21,7 @@ const Index = () => {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const { progress } = useUserProgress();
+  const { updateMissionProgress } = useDailyMissions(progress.level);
 
   useEffect(() => {
     const savedSubjects = localStorage.getItem(STORAGE_KEY);
@@ -84,7 +86,12 @@ const Index = () => {
     return count;
   }, [sessions]);
 
-  // Get next subject to study (lowest ratio of studied/total)
+  // Update streak mission when streak changes
+  useEffect(() => {
+    if (streak > 0) {
+      updateMissionProgress('streak', streak);
+    }
+  }, [streak, updateMissionProgress]);
   const nextSubject = useMemo(() => {
     if (subjects.length === 0) return null;
     
@@ -142,7 +149,7 @@ const Index = () => {
           studyHours={totalHours || 26}
         />
 
-        <DailyMissions expiresIn="4h" />
+        <DailyMissions userLevel={progress.level} />
 
         <CurrentPlan
           planName="ESA 2024 - Elite"
@@ -153,7 +160,7 @@ const Index = () => {
 
         <ActivityHeatmap />
 
-        <LockedMetrics />
+        <LockedMetrics userLevel={progress.level} />
       </div>
 
       <BottomNav />
