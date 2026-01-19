@@ -3,6 +3,7 @@ import { Subject, StudySession, Achievement } from "@/types/study";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useDailyMissions } from "@/hooks/useDailyMissions";
+import { useNotificationScheduler } from "@/hooks/useNotificationScheduler";
 import BottomNav from "@/components/BottomNav";
 import UserHeader from "@/components/dashboard/UserHeader";
 import NextActionCard from "@/components/dashboard/NextActionCard";
@@ -11,6 +12,7 @@ import DailyMissions from "@/components/dashboard/DailyMissions";
 import CurrentPlan from "@/components/dashboard/CurrentPlan";
 import ActivityHeatmap from "@/components/dashboard/ActivityHeatmap";
 import LockedMetrics from "@/components/dashboard/LockedMetrics";
+import NotificationPermissionBanner from "@/components/NotificationPermissionBanner";
 
 const STORAGE_KEY = "study-cycle-subjects";
 const SESSIONS_STORAGE_KEY = "study-cycle-sessions";
@@ -118,6 +120,7 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <NotificationPermissionBanner />
       <div className="container mx-auto px-4 py-6 max-w-lg">
         <UserHeader
           userName="Campeão"
