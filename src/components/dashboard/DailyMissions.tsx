@@ -1,18 +1,46 @@
-import { Zap, Check, Gift } from "lucide-react";
+import { Zap, Check, Gift, Flame, PartyPopper } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useDailyMissions, DailyMission } from "@/hooks/useDailyMissions";
 import { useUserProgress } from "@/hooks/useUserProgress";
+import { useMissionStreak } from "@/hooks/useMissionStreak";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect, useRef } from "react";
 
 interface DailyMissionsProps {
   userLevel?: number;
 }
 
 const DailyMissions = ({ userLevel = 1 }: DailyMissionsProps) => {
-  const { missions, expiresIn, claimMissionReward, getIconComponent } = useDailyMissions(userLevel);
+  const { missions, expiresIn, claimMissionReward, getIconComponent, allMissionsCompleted, allMissionsClaimed } = useDailyMissions(userLevel);
   const { addXP } = useUserProgress();
+  const { streakData, recordDailyCompletion, isTodayCompleted } = useMissionStreak();
   const { toast } = useToast();
+  const hasRecordedStreak = useRef(false);
+
+  // Record streak when all missions are claimed
+  useEffect(() => {
+    if (allMissionsClaimed && !isTodayCompleted && !hasRecordedStreak.current) {
+      hasRecordedStreak.current = true;
+      const result = recordDailyCompletion();
+      
+      // Show celebration toast
+      toast({
+        title: "🔥 Dia Perfeito!",
+        description: `Todas as missões completadas! Sequência: ${result.newStreak} dias`,
+      });
+
+      // Show special milestone toast if reached
+      if (result.milestoneReached) {
+        setTimeout(() => {
+          toast({
+            title: "🏆 Conquista Desbloqueada!",
+            description: `Você completou ${result.milestoneReached} dias de sequência!`,
+          });
+        }, 1500);
+      }
+    }
+  }, [allMissionsClaimed, isTodayCompleted, recordDailyCompletion, toast]);
 
   const handleClaimReward = (mission: DailyMission) => {
     const xpReward = claimMissionReward(mission.id);
@@ -32,9 +60,32 @@ const DailyMissions = ({ userLevel = 1 }: DailyMissionsProps) => {
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-foreground">Missões Diárias</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-semibold text-foreground">Missões Diárias</h2>
+          {streakData.currentStreak > 0 && (
+            <div className="flex items-center gap-1 bg-warning/10 px-2 py-1 rounded-full">
+              <Flame className="w-4 h-4 text-warning" />
+              <span className="text-xs font-bold text-warning">{streakData.currentStreak}</span>
+            </div>
+          )}
+        </div>
         <span className="text-xs text-muted-foreground">Expira em {expiresIn}</span>
       </div>
+
+      {/* All missions completed celebration */}
+      {allMissionsClaimed && (
+        <div className="mb-4 p-4 rounded-xl bg-gradient-to-br from-success/10 to-primary/10 border border-success/20">
+          <div className="flex items-center gap-3">
+            <PartyPopper className="w-8 h-8 text-success" />
+            <div>
+              <p className="font-semibold text-foreground">Dia Perfeito! 🎉</p>
+              <p className="text-sm text-muted-foreground">
+                Todas as missões completadas. Volte amanhã para manter sua sequência!
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="space-y-3">
         {missions.map((mission) => {

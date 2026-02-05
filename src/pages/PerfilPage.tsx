@@ -13,10 +13,12 @@ import {
   TrendingUp,
   Star,
   Crown,
-  Settings
+  Settings,
+  Flame
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import MissionStreakAchievements from "@/components/MissionStreakAchievements";
 
 const PerfilPage = () => {
   const { progress, battleHistory, levelProgress, xpForNextLevel } = useUserProgress();
@@ -208,9 +210,9 @@ const PerfilPage = () => {
         </div>
       </div>
 
-      {/* Conquistas */}
+      {/* Conquistas de Batalha */}
       <div className="px-6 mt-8">
-        <h2 className="text-lg font-semibold text-foreground mb-4">Conquistas</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-4">Conquistas de Batalha</h2>
         <div className="grid grid-cols-2 gap-3">
           {achievements.map((achievement) => (
             <Card 
@@ -233,6 +235,15 @@ const PerfilPage = () => {
             </Card>
           ))}
         </div>
+      </div>
+
+      {/* Conquistas de Sequência de Missões */}
+      <div className="px-6 mt-8">
+        <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+          <Flame className="w-5 h-5 text-warning" />
+          Sequência de Missões
+        </h2>
+        <MissionStreakAchievements />
       </div>
 
       <BottomNav />
