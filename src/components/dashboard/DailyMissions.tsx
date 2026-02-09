@@ -6,6 +6,7 @@ import { useUserProgress } from "@/hooks/useUserProgress";
 import { useMissionStreak } from "@/hooks/useMissionStreak";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useRef } from "react";
+import { fireConfetti, fireMilestoneConfetti } from "@/lib/confetti";
 
 interface DailyMissionsProps {
   userLevel?: number;
@@ -24,15 +25,18 @@ const DailyMissions = ({ userLevel = 1 }: DailyMissionsProps) => {
       hasRecordedStreak.current = true;
       const result = recordDailyCompletion();
       
-      // Show celebration toast
+      // Fire confetti for completing all missions
+      fireConfetti();
+
       toast({
         title: "🔥 Dia Perfeito!",
         description: `Todas as missões completadas! Sequência: ${result.newStreak} dias`,
       });
 
-      // Show special milestone toast if reached
+      // Fire epic confetti + toast for milestone
       if (result.milestoneReached) {
         setTimeout(() => {
+          fireMilestoneConfetti();
           toast({
             title: "🏆 Conquista Desbloqueada!",
             description: `Você completou ${result.milestoneReached} dias de sequência!`,
