@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { Subject, StudySession, Achievement } from "@/types/study";
+import { BattleHistory } from "@/types/question";
 import { ACHIEVEMENTS } from "@/lib/achievements";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useDailyMissions } from "@/hooks/useDailyMissions";
@@ -17,38 +18,37 @@ import NotificationPermissionBanner from "@/components/NotificationPermissionBan
 const STORAGE_KEY = "study-cycle-subjects";
 const SESSIONS_STORAGE_KEY = "study-cycle-sessions";
 const ACHIEVEMENTS_STORAGE_KEY = "study-cycle-achievements";
+const BATTLE_HISTORY_KEY = "battle-history";
 
 const Index = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [battleHistory, setBattleHistory] = useState<BattleHistory[]>([]);
   const { progress } = useUserProgress();
   const { updateMissionProgress } = useDailyMissions(progress.level);
 
   useEffect(() => {
     const savedSubjects = localStorage.getItem(STORAGE_KEY);
     if (savedSubjects) {
-      try {
-        setSubjects(JSON.parse(savedSubjects));
-      } catch {}
+      try { setSubjects(JSON.parse(savedSubjects)); } catch {}
     }
 
     const savedSessions = localStorage.getItem(SESSIONS_STORAGE_KEY);
     if (savedSessions) {
-      try {
-        setSessions(JSON.parse(savedSessions));
-      } catch {}
+      try { setSessions(JSON.parse(savedSessions)); } catch {}
     }
 
     const savedAchievements = localStorage.getItem(ACHIEVEMENTS_STORAGE_KEY);
     if (savedAchievements) {
-      try {
-        setAchievements(JSON.parse(savedAchievements));
-      } catch {
-        setAchievements(ACHIEVEMENTS);
-      }
+      try { setAchievements(JSON.parse(savedAchievements)); } catch { setAchievements(ACHIEVEMENTS); }
     } else {
       setAchievements(ACHIEVEMENTS);
+    }
+
+    const savedBattles = localStorage.getItem(BATTLE_HISTORY_KEY);
+    if (savedBattles) {
+      try { setBattleHistory(JSON.parse(savedBattles)); } catch {}
     }
   }, []);
 
@@ -64,7 +64,7 @@ const Index = () => {
   
   const todayMinutes = todaySessions.reduce((acc, s) => acc + s.focusMinutes, 0);
 
-  // Calculate streak (simplified - count consecutive days with sessions)
+  // Calculate current streak (consecutive days ending today)
   const streak = useMemo(() => {
     if (sessions.length === 0) return 0;
     
@@ -88,12 +88,46 @@ const Index = () => {
     return count;
   }, [sessions]);
 
+  // Calculate record streak (longest consecutive sequence ever)
+  const recordStreak = useMemo(() => {
+    if (sessions.length === 0) return 0;
+
+    const uniqueDays = [...new Set(sessions.map(s => new Date(s.date).toDateString()))]
+      .map(d => new Date(d).getTime())
+      .sort((a, b) => a - b);
+
+    let maxStreak = 1;
+    let currentStreak = 1;
+    const oneDay = 86400000;
+
+    for (let i = 1; i < uniqueDays.length; i++) {
+      const diff = uniqueDays[i] - uniqueDays[i - 1];
+      if (diff <= oneDay) {
+        currentStreak++;
+        maxStreak = Math.max(maxStreak, currentStreak);
+      } else {
+        currentStreak = 1;
+      }
+    }
+
+    return maxStreak;
+  }, [sessions]);
+
+  // Questions answered today (from battle history)
+  const questionsToday = useMemo(() => {
+    const today = new Date().toDateString();
+    return battleHistory
+      .filter(b => new Date(b.date).toDateString() === today)
+      .reduce((acc, b) => acc + b.totalQuestions, 0);
+  }, [battleHistory]);
+
   // Update streak mission when streak changes
   useEffect(() => {
     if (streak > 0) {
       updateMissionProgress('streak', streak);
     }
   }, [streak, updateMissionProgress]);
+
   const nextSubject = useMemo(() => {
     if (subjects.length === 0) return null;
     
@@ -117,6 +151,29 @@ const Index = () => {
     
     return Math.round((daysWithSessions / 7) * 100);
   }, [sessions]);
+
+  // CurrentPlan calculations
+  const planData = useMemo(() => {
+    if (sessions.length === 0) return null;
+
+    const dates = sessions.map(s => new Date(s.date).getTime());
+    const firstDate = new Date(Math.min(...dates));
+    const today = new Date();
+    const diffDays = Math.max(1, Math.ceil((today.getTime() - firstDate.getTime()) / 86400000));
+    const currentWeek = Math.max(1, Math.ceil(diffDays / 7));
+
+    const uniqueSessionDays = new Set(sessions.map(s => new Date(s.date).toDateString())).size;
+    const adherencePercentage = Math.round((uniqueSessionDays / diffDays) * 100);
+
+    const subjectCount = subjects.length;
+    const planName = subjectCount === 0
+      ? "Plano Inicial"
+      : subjectCount <= 3
+        ? `Plano Focado - ${subjectCount} matérias`
+        : `Plano Completo - ${subjectCount} matérias`;
+
+    return { planName, currentWeek, adherencePercentage };
+  }, [sessions, subjects]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -144,26 +201,34 @@ const Index = () => {
         )}
 
         <StatsGrid
-          streak={streak || 5}
-          recordStreak={12}
-          focusPercentage={focusPercentage || 85}
-          questionsAnswered={progress.totalQuestionsAnswered || 124}
-          questionsToday={Math.round(todayMinutes / 5) || 12}
-          studyHours={totalHours || 26}
+          streak={streak}
+          recordStreak={recordStreak}
+          focusPercentage={focusPercentage}
+          questionsAnswered={progress.totalQuestionsAnswered}
+          questionsToday={questionsToday}
+          studyHours={totalHours}
         />
 
         <DailyMissions userLevel={progress.level} />
 
-        <CurrentPlan
-          planName="ESA 2024 - Elite"
-          validUntil="Dez 2024"
-          currentWeek={14}
-          adherencePercentage={92}
-        />
+        {planData && (
+          <CurrentPlan
+            planName={planData.planName}
+            validUntil="—"
+            currentWeek={planData.currentWeek}
+            adherencePercentage={planData.adherencePercentage}
+          />
+        )}
 
         <ActivityHeatmap />
 
-        <LockedMetrics userLevel={progress.level} />
+        <LockedMetrics
+          userLevel={progress.level}
+          subjects={subjects}
+          sessions={sessions}
+          battleHistory={battleHistory}
+          progress={progress}
+        />
       </div>
 
       <BottomNav />
