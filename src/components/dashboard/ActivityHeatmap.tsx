@@ -77,10 +77,23 @@ const ActivityHeatmap = ({ data }: ActivityHeatmapProps) => {
     return `${value}+ atividades`;
   };
 
+  // Days active in last 7 days
+  const activeDaysLast7 = useMemo(() => {
+    return activityData.slice(-7).filter(v => v > 0).length;
+  }, [activityData]);
+
+  // Today index highlighting
+  const todayIndex = activityData.length - 1;
+
   return (
     <div className="mb-6">
       <div className="flex items-center justify-between mb-3">
-        <h2 className="text-lg font-semibold text-foreground">Atividade</h2>
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">Atividade</h2>
+          <p className="text-xs text-muted-foreground">
+            {activeDaysLast7} de 7 dias ativos esta semana
+          </p>
+        </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>Menos</span>
           <div className="flex gap-0.5">
@@ -99,7 +112,9 @@ const ActivityHeatmap = ({ data }: ActivityHeatmapProps) => {
           {activityData.map((value, index) => (
             <div
               key={index}
-              className={`w-3 h-3 rounded-sm ${getColor(value)} transition-colors`}
+              className={`w-3 h-3 rounded-sm ${getColor(value)} transition-colors ${
+                index === todayIndex ? "ring-1 ring-primary ring-offset-1 ring-offset-card" : ""
+              }`}
               title={getActivityLabel(value)}
             />
           ))}
