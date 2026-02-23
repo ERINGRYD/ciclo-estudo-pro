@@ -7,12 +7,16 @@ import { useDailyMissions } from "@/hooks/useDailyMissions";
 import { useNotificationScheduler } from "@/hooks/useNotificationScheduler";
 import BottomNav from "@/components/BottomNav";
 import UserHeader from "@/components/dashboard/UserHeader";
+import TodaySummary from "@/components/dashboard/TodaySummary";
 import NextActionCard from "@/components/dashboard/NextActionCard";
 import StatsGrid from "@/components/dashboard/StatsGrid";
+import type { TrendDirection } from "@/components/dashboard/StatsGrid";
+import WeakPointsCard from "@/components/dashboard/WeakPointsCard";
 import DailyMissions from "@/components/dashboard/DailyMissions";
 import CurrentPlan from "@/components/dashboard/CurrentPlan";
 import ActivityHeatmap from "@/components/dashboard/ActivityHeatmap";
 import LockedMetrics from "@/components/dashboard/LockedMetrics";
+import EmptyStateCard from "@/components/dashboard/EmptyStateCard";
 import NotificationPermissionBanner from "@/components/NotificationPermissionBanner";
 
 const STORAGE_KEY = "study-cycle-subjects";
@@ -25,7 +29,7 @@ const Index = () => {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [battleHistory, setBattleHistory] = useState<BattleHistory[]>([]);
-  const { progress } = useUserProgress();
+  const { progress, levelProgress, xpForNextLevel } = useUserProgress();
   const { updateMissionProgress } = useDailyMissions(progress.level);
 
   useEffect(() => {
@@ -52,128 +56,203 @@ const Index = () => {
     }
   }, []);
 
-  // Calculate stats
+  // === Basic stats ===
   const totalStudiedMinutes = subjects.reduce((acc, s) => acc + s.studiedMinutes, 0);
   const totalHours = Math.floor(totalStudiedMinutes / 60);
-  
-  const todaySessions = sessions.filter(s => {
-    const sessionDate = new Date(s.date).toDateString();
-    const today = new Date().toDateString();
-    return sessionDate === today;
-  });
-  
+  const today = new Date().toDateString();
+
+  const todaySessions = sessions.filter(s => new Date(s.date).toDateString() === today);
   const todayMinutes = todaySessions.reduce((acc, s) => acc + s.focusMinutes, 0);
 
-  // Calculate current streak (consecutive days ending today)
+  // === Streak calculation ===
   const streak = useMemo(() => {
     if (sessions.length === 0) return 0;
-    
     const sortedDates = [...new Set(sessions.map(s => new Date(s.date).toDateString()))]
       .sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
-    
     let count = 0;
-    const today = new Date();
-    
+    const now = new Date();
     for (let i = 0; i < sortedDates.length; i++) {
-      const checkDate = new Date(today);
+      const checkDate = new Date(now);
       checkDate.setDate(checkDate.getDate() - i);
-      
       if (sortedDates.includes(checkDate.toDateString())) {
         count++;
       } else {
         break;
       }
     }
-    
     return count;
   }, [sessions]);
 
-  // Calculate record streak (longest consecutive sequence ever)
+  // === Record streak ===
   const recordStreak = useMemo(() => {
     if (sessions.length === 0) return 0;
-
     const uniqueDays = [...new Set(sessions.map(s => new Date(s.date).toDateString()))]
-      .map(d => new Date(d).getTime())
-      .sort((a, b) => a - b);
-
-    let maxStreak = 1;
-    let currentStreak = 1;
+      .map(d => new Date(d).getTime()).sort((a, b) => a - b);
+    let maxStreak = 1, currentStreak = 1;
     const oneDay = 86400000;
-
     for (let i = 1; i < uniqueDays.length; i++) {
-      const diff = uniqueDays[i] - uniqueDays[i - 1];
-      if (diff <= oneDay) {
+      if (uniqueDays[i] - uniqueDays[i - 1] <= oneDay) {
         currentStreak++;
         maxStreak = Math.max(maxStreak, currentStreak);
       } else {
         currentStreak = 1;
       }
     }
-
     return maxStreak;
   }, [sessions]);
 
-  // Questions answered today (from battle history)
+  // === Questions today ===
   const questionsToday = useMemo(() => {
-    const today = new Date().toDateString();
     return battleHistory
       .filter(b => new Date(b.date).toDateString() === today)
       .reduce((acc, b) => acc + b.totalQuestions, 0);
-  }, [battleHistory]);
+  }, [battleHistory, today]);
 
-  // Update streak mission when streak changes
-  useEffect(() => {
-    if (streak > 0) {
-      updateMissionProgress('streak', streak);
-    }
-  }, [streak, updateMissionProgress]);
+  // === Today hit rate ===
+  const todayHitRate = useMemo(() => {
+    const todayBattles = battleHistory.filter(b => new Date(b.date).toDateString() === today);
+    const total = todayBattles.reduce((a, b) => a + b.totalQuestions, 0);
+    const correct = todayBattles.reduce((a, b) => a + b.correctAnswers, 0);
+    return total > 0 ? Math.round((correct / total) * 100) : 0;
+  }, [battleHistory, today]);
 
-  const nextSubject = useMemo(() => {
-    if (subjects.length === 0) return null;
-    
-    return subjects.reduce((lowest, current) => {
-      const lowestRatio = lowest.studiedMinutes / (lowest.totalMinutes || 1);
-      const currentRatio = current.studiedMinutes / (current.totalMinutes || 1);
-      return currentRatio < lowestRatio ? current : lowest;
-    }, subjects[0]);
-  }, [subjects]);
+  // === Daily averages ===
+  const { avgDailyMinutes, avgDailyQuestions } = useMemo(() => {
+    if (sessions.length === 0 && battleHistory.length === 0) return { avgDailyMinutes: 0, avgDailyQuestions: 0 };
+    const allDates = [
+      ...sessions.map(s => new Date(s.date).getTime()),
+      ...battleHistory.map(b => new Date(b.date).getTime()),
+    ];
+    if (allDates.length === 0) return { avgDailyMinutes: 0, avgDailyQuestions: 0 };
+    const earliest = Math.min(...allDates);
+    const totalDays = Math.max(1, Math.ceil((Date.now() - earliest) / 86400000));
+    const totalMin = sessions.reduce((a, s) => a + s.focusMinutes, 0);
+    const totalQ = battleHistory.reduce((a, b) => a + b.totalQuestions, 0);
+    return { avgDailyMinutes: totalMin / totalDays, avgDailyQuestions: totalQ / totalDays };
+  }, [sessions, battleHistory]);
 
-  // Calculate focus percentage (sessions this week / 7)
+  // === Focus percentage ===
   const focusPercentage = useMemo(() => {
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    
     const daysWithSessions = new Set(
-      sessions
-        .filter(s => new Date(s.date) >= oneWeekAgo)
-        .map(s => new Date(s.date).toDateString())
+      sessions.filter(s => new Date(s.date) >= oneWeekAgo).map(s => new Date(s.date).toDateString())
     ).size;
-    
     return Math.round((daysWithSessions / 7) * 100);
   }, [sessions]);
 
-  // CurrentPlan calculations
+  // === Trends (this week vs last week) ===
+  const trends = useMemo(() => {
+    const now = new Date();
+    const startOfWeek = new Date(now);
+    startOfWeek.setDate(now.getDate() - now.getDay());
+    startOfWeek.setHours(0, 0, 0, 0);
+    const startOfLastWeek = new Date(startOfWeek);
+    startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
+
+    const thisWeekSessions = sessions.filter(s => new Date(s.date) >= startOfWeek);
+    const lastWeekSessions = sessions.filter(s => {
+      const d = new Date(s.date);
+      return d >= startOfLastWeek && d < startOfWeek;
+    });
+
+    const thisWeekBattles = battleHistory.filter(b => new Date(b.date) >= startOfWeek);
+    const lastWeekBattles = battleHistory.filter(b => {
+      const d = new Date(b.date);
+      return d >= startOfLastWeek && d < startOfWeek;
+    });
+
+    const calcTrend = (current: number, previous: number): TrendDirection => {
+      if (current > previous) return "up";
+      if (current < previous) return "down";
+      return "stable";
+    };
+
+    const thisWeekDays = new Set(thisWeekSessions.map(s => new Date(s.date).toDateString())).size;
+    const lastWeekDays = new Set(lastWeekSessions.map(s => new Date(s.date).toDateString())).size;
+
+    const thisWeekQ = thisWeekBattles.reduce((a, b) => a + b.totalQuestions, 0);
+    const lastWeekQ = lastWeekBattles.reduce((a, b) => a + b.totalQuestions, 0);
+
+    const thisWeekHours = thisWeekSessions.reduce((a, s) => a + s.focusMinutes, 0);
+    const lastWeekHours = lastWeekSessions.reduce((a, s) => a + s.focusMinutes, 0);
+
+    return {
+      streakTrend: calcTrend(streak, streak > 0 ? streak - 1 : 0) as TrendDirection,
+      focusTrend: calcTrend(thisWeekDays, lastWeekDays),
+      questionsTrend: calcTrend(thisWeekQ, lastWeekQ),
+      hoursTrend: calcTrend(thisWeekHours, lastWeekHours),
+    };
+  }, [sessions, battleHistory, streak]);
+
+  // === Weak points ===
+  const weakPoints = useMemo(() => {
+    if (battleHistory.length === 0) return [];
+    const stats: Record<string, { correct: number; total: number }> = {};
+    battleHistory.forEach(b => {
+      if (!stats[b.subject]) stats[b.subject] = { correct: 0, total: 0 };
+      stats[b.subject].correct += b.correctAnswers;
+      stats[b.subject].total += b.totalQuestions;
+    });
+    return Object.entries(stats)
+      .filter(([, s]) => s.total >= 3)
+      .map(([subject, s]) => ({
+        subject,
+        hitRate: Math.round((s.correct / s.total) * 100),
+        totalQuestions: s.total,
+      }))
+      .sort((a, b) => a.hitRate - b.hitRate)
+      .slice(0, 3);
+  }, [battleHistory]);
+
+  // === Smart next action ===
+  const nextAction = useMemo(() => {
+    if (subjects.length === 0) return null;
+
+    // Check if any subject has weak battle performance
+    if (weakPoints.length > 0) {
+      const weakestSubject = subjects.find(s => s.name === weakPoints[0].subject);
+      if (weakestSubject) {
+        return { subject: weakestSubject, reason: `Acerto: ${weakPoints[0].hitRate}% — precisa revisar` };
+      }
+    }
+
+    // Fallback: lowest progress ratio
+    const lowest = subjects.reduce((low, cur) => {
+      const lowRatio = low.studiedMinutes / (low.totalMinutes || 1);
+      const curRatio = cur.studiedMinutes / (cur.totalMinutes || 1);
+      return curRatio < lowRatio ? cur : low;
+    }, subjects[0]);
+
+    const ratio = Math.round((lowest.studiedMinutes / (lowest.totalMinutes || 1)) * 100);
+    return { subject: lowest, reason: `Progresso: ${ratio}% — menor avanço` };
+  }, [subjects, weakPoints]);
+
+  // === Current plan ===
   const planData = useMemo(() => {
     if (sessions.length === 0) return null;
-
     const dates = sessions.map(s => new Date(s.date).getTime());
     const firstDate = new Date(Math.min(...dates));
-    const today = new Date();
-    const diffDays = Math.max(1, Math.ceil((today.getTime() - firstDate.getTime()) / 86400000));
+    const now = new Date();
+    const diffDays = Math.max(1, Math.ceil((now.getTime() - firstDate.getTime()) / 86400000));
     const currentWeek = Math.max(1, Math.ceil(diffDays / 7));
-
     const uniqueSessionDays = new Set(sessions.map(s => new Date(s.date).toDateString())).size;
     const adherencePercentage = Math.round((uniqueSessionDays / diffDays) * 100);
-
     const subjectCount = subjects.length;
     const planName = subjectCount === 0
       ? "Plano Inicial"
       : subjectCount <= 3
         ? `Plano Focado - ${subjectCount} matérias`
         : `Plano Completo - ${subjectCount} matérias`;
-
     return { planName, currentWeek, adherencePercentage };
   }, [sessions, subjects]);
+
+  // Update streak mission
+  useEffect(() => {
+    if (streak > 0) updateMissionProgress('streak', streak);
+  }, [streak, updateMissionProgress]);
+
+  const isEmpty = subjects.length === 0 && sessions.length === 0 && battleHistory.length === 0;
 
   return (
     <div className="min-h-screen bg-background">
@@ -184,30 +263,50 @@ const Index = () => {
           level={progress.level}
           levelTitle={progress.title}
           xp={progress.xp}
+          levelProgress={levelProgress}
+          xpForNextLevel={xpForNextLevel}
         />
 
-        {nextSubject ? (
-          <NextActionCard
-            subjectName={nextSubject.name}
-            subjectArea="Estudos"
-            cycleNumber={1}
+        {isEmpty ? (
+          <EmptyStateCard
+            hasSubjects={subjects.length > 0}
+            hasSessions={sessions.length > 0}
+            hasBattles={battleHistory.length > 0}
           />
         ) : (
-          <NextActionCard
-            subjectName="Geometria Espacial"
-            subjectArea="Matemática"
-            cycleNumber={2}
-          />
-        )}
+          <>
+            <TodaySummary
+              todayMinutes={todayMinutes}
+              questionsToday={questionsToday}
+              todayHitRate={todayHitRate}
+              avgDailyMinutes={avgDailyMinutes}
+              avgDailyQuestions={avgDailyQuestions}
+            />
 
-        <StatsGrid
-          streak={streak}
-          recordStreak={recordStreak}
-          focusPercentage={focusPercentage}
-          questionsAnswered={progress.totalQuestionsAnswered}
-          questionsToday={questionsToday}
-          studyHours={totalHours}
-        />
+            <NextActionCard
+              subjectName={nextAction?.subject.name ?? ""}
+              subjectArea="Estudos"
+              cycleNumber={1}
+              reason={nextAction?.reason}
+              isEmpty={subjects.length === 0}
+            />
+
+            <StatsGrid
+              streak={streak}
+              recordStreak={recordStreak}
+              focusPercentage={focusPercentage}
+              questionsAnswered={progress.totalQuestionsAnswered}
+              questionsToday={questionsToday}
+              studyHours={totalHours}
+              streakTrend={trends.streakTrend}
+              questionsTrend={trends.questionsTrend}
+              focusTrend={trends.focusTrend}
+              hoursTrend={trends.hoursTrend}
+            />
+
+            <WeakPointsCard weakPoints={weakPoints} />
+          </>
+        )}
 
         <DailyMissions userLevel={progress.level} />
 
@@ -220,7 +319,7 @@ const Index = () => {
           />
         )}
 
-        <ActivityHeatmap />
+        {!isEmpty && <ActivityHeatmap />}
 
         <LockedMetrics
           userLevel={progress.level}
