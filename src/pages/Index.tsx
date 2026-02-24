@@ -7,11 +7,15 @@ import { useDailyMissions } from "@/hooks/useDailyMissions";
 import { useNotificationScheduler } from "@/hooks/useNotificationScheduler";
 import BottomNav from "@/components/BottomNav";
 import UserHeader from "@/components/dashboard/UserHeader";
+import MotivationalQuote from "@/components/dashboard/MotivationalQuote";
+import QuickActions from "@/components/dashboard/QuickActions";
 import TodaySummary from "@/components/dashboard/TodaySummary";
 import NextActionCard from "@/components/dashboard/NextActionCard";
+import WeeklyBarChart from "@/components/dashboard/WeeklyBarChart";
 import StatsGrid from "@/components/dashboard/StatsGrid";
 import type { TrendDirection } from "@/components/dashboard/StatsGrid";
 import WeakPointsCard from "@/components/dashboard/WeakPointsCard";
+import type { WeakPointTrend } from "@/components/dashboard/WeakPointsCard";
 import DailyMissions from "@/components/dashboard/DailyMissions";
 import CurrentPlan from "@/components/dashboard/CurrentPlan";
 import ActivityHeatmap from "@/components/dashboard/ActivityHeatmap";
@@ -63,6 +67,12 @@ const Index = () => {
 
   const todaySessions = sessions.filter(s => new Date(s.date).toDateString() === today);
   const todayMinutes = todaySessions.reduce((acc, s) => acc + s.focusMinutes, 0);
+
+  // === Last session date ===
+  const lastSessionDate = useMemo(() => {
+    if (sessions.length === 0) return null;
+    return new Date(Math.max(...sessions.map(s => new Date(s.date).getTime())));
+  }, [sessions]);
 
   // === Streak calculation ===
   const streak = useMemo(() => {
@@ -205,25 +215,65 @@ const Index = () => {
       .slice(0, 3);
   }, [battleHistory]);
 
+  // === Weak point trends ===
+  const weakPointTrends = useMemo(() => {
+    if (battleHistory.length === 0) return {};
+    const now = new Date();
+    const oneWeekAgo = new Date(now);
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const twoWeeksAgo = new Date(oneWeekAgo);
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 7);
+
+    const result: Record<string, "improving" | "declining" | "stable"> = {};
+    weakPoints.forEach(wp => {
+      const thisWeek = battleHistory.filter(b => b.subject === wp.subject && new Date(b.date) >= oneWeekAgo);
+      const lastWeek = battleHistory.filter(b => b.subject === wp.subject && new Date(b.date) >= twoWeeksAgo && new Date(b.date) < oneWeekAgo);
+
+      const thisRate = thisWeek.length > 0
+        ? thisWeek.reduce((a, b) => a + b.correctAnswers, 0) / thisWeek.reduce((a, b) => a + b.totalQuestions, 0)
+        : null;
+      const lastRate = lastWeek.length > 0
+        ? lastWeek.reduce((a, b) => a + b.correctAnswers, 0) / lastWeek.reduce((a, b) => a + b.totalQuestions, 0)
+        : null;
+
+      if (thisRate !== null && lastRate !== null) {
+        if (thisRate > lastRate + 0.05) result[wp.subject] = "improving";
+        else if (thisRate < lastRate - 0.05) result[wp.subject] = "declining";
+        else result[wp.subject] = "stable";
+      }
+    });
+    return result;
+  }, [battleHistory, weakPoints]);
+
+  // === Subject adherence ===
+  const subjectAdherence = useMemo(() => {
+    if (sessions.length === 0 || subjects.length === 0) return [];
+    const now = new Date();
+    const allDates = sessions.map(s => new Date(s.date).getTime());
+    const firstDate = new Date(Math.min(...allDates));
+    const totalDays = Math.max(1, Math.ceil((now.getTime() - firstDate.getTime()) / 86400000));
+
+    return subjects.map(sub => {
+      const subSessions = sessions.filter(s => s.subjectName === sub.name);
+      const uniqueDays = new Set(subSessions.map(s => new Date(s.date).toDateString())).size;
+      return { name: sub.name, adherence: Math.min(100, Math.round((uniqueDays / totalDays) * 100)) };
+    }).sort((a, b) => b.adherence - a.adherence);
+  }, [sessions, subjects]);
+
   // === Smart next action ===
   const nextAction = useMemo(() => {
     if (subjects.length === 0) return null;
-
-    // Check if any subject has weak battle performance
     if (weakPoints.length > 0) {
       const weakestSubject = subjects.find(s => s.name === weakPoints[0].subject);
       if (weakestSubject) {
         return { subject: weakestSubject, reason: `Acerto: ${weakPoints[0].hitRate}% — precisa revisar` };
       }
     }
-
-    // Fallback: lowest progress ratio
     const lowest = subjects.reduce((low, cur) => {
       const lowRatio = low.studiedMinutes / (low.totalMinutes || 1);
       const curRatio = cur.studiedMinutes / (cur.totalMinutes || 1);
       return curRatio < lowRatio ? cur : low;
     }, subjects[0]);
-
     const ratio = Math.round((lowest.studiedMinutes / (lowest.totalMinutes || 1)) * 100);
     return { subject: lowest, reason: `Progresso: ${ratio}% — menor avanço` };
   }, [subjects, weakPoints]);
@@ -265,7 +315,11 @@ const Index = () => {
           xp={progress.xp}
           levelProgress={levelProgress}
           xpForNextLevel={xpForNextLevel}
+          lastSessionDate={lastSessionDate}
         />
+
+        <MotivationalQuote />
+        <QuickActions />
 
         {isEmpty ? (
           <EmptyStateCard
@@ -291,6 +345,8 @@ const Index = () => {
               isEmpty={subjects.length === 0}
             />
 
+            <WeeklyBarChart sessions={sessions} />
+
             <StatsGrid
               streak={streak}
               recordStreak={recordStreak}
@@ -304,7 +360,7 @@ const Index = () => {
               hoursTrend={trends.hoursTrend}
             />
 
-            <WeakPointsCard weakPoints={weakPoints} />
+            <WeakPointsCard weakPoints={weakPoints} trends={weakPointTrends} />
           </>
         )}
 
@@ -316,6 +372,7 @@ const Index = () => {
             validUntil="—"
             currentWeek={planData.currentWeek}
             adherencePercentage={planData.adherencePercentage}
+            subjectAdherence={subjectAdherence}
           />
         )}
 
