@@ -1,4 +1,5 @@
-import { BookOpen, HelpCircle, Target, TrendingUp, TrendingDown } from "lucide-react";
+import { BookOpen, HelpCircle, Target, CheckCircle2 } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
 
 interface TodaySummaryProps {
   todayMinutes: number;
@@ -6,6 +7,8 @@ interface TodaySummaryProps {
   todayHitRate: number;
   avgDailyMinutes: number;
   avgDailyQuestions: number;
+  dailyMinuteGoal?: number;
+  dailyQuestionGoal?: number;
 }
 
 const TodaySummary = ({
@@ -14,35 +17,38 @@ const TodaySummary = ({
   todayHitRate,
   avgDailyMinutes,
   avgDailyQuestions,
+  dailyMinuteGoal = 60,
+  dailyQuestionGoal = 20,
 }: TodaySummaryProps) => {
-  const minutesAboveAvg = todayMinutes >= avgDailyMinutes;
-  const questionsAboveAvg = questionsToday >= avgDailyQuestions;
+  const minuteProgress = Math.min((todayMinutes / dailyMinuteGoal) * 100, 100);
+  const questionProgress = Math.min((questionsToday / dailyQuestionGoal) * 100, 100);
+  const minuteGoalReached = todayMinutes >= dailyMinuteGoal;
+  const questionGoalReached = questionsToday >= dailyQuestionGoal;
 
   const stats = [
     {
-      icon: BookOpen,
+      icon: minuteGoalReached ? CheckCircle2 : BookOpen,
       label: "Estudado",
-      value: `${todayMinutes}min`,
-      comparison: avgDailyMinutes > 0
-        ? `${minutesAboveAvg ? "↑" : "↓"} Média: ${Math.round(avgDailyMinutes)}min`
-        : null,
-      isAbove: minutesAboveAvg,
+      value: `${todayMinutes}/${dailyMinuteGoal}`,
+      unit: "min",
+      progress: minuteProgress,
+      goalReached: minuteGoalReached,
     },
     {
-      icon: HelpCircle,
+      icon: questionGoalReached ? CheckCircle2 : HelpCircle,
       label: "Questões",
-      value: String(questionsToday),
-      comparison: avgDailyQuestions > 0
-        ? `${questionsAboveAvg ? "↑" : "↓"} Média: ${Math.round(avgDailyQuestions)}`
-        : null,
-      isAbove: questionsAboveAvg,
+      value: `${questionsToday}/${dailyQuestionGoal}`,
+      unit: "",
+      progress: questionProgress,
+      goalReached: questionGoalReached,
     },
     {
       icon: Target,
       label: "Acerto",
       value: `${todayHitRate}%`,
-      comparison: null,
-      isAbove: todayHitRate >= 60,
+      unit: "",
+      progress: todayHitRate,
+      goalReached: todayHitRate >= 70,
     },
   ];
 
@@ -53,16 +59,20 @@ const TodaySummary = ({
         {stats.map((stat) => (
           <div
             key={stat.label}
-            className="bg-card rounded-xl p-3 border border-border text-center"
+            className={`bg-card rounded-xl p-3 border text-center ${
+              stat.goalReached ? "border-success/40 bg-success/5" : "border-border"
+            }`}
           >
-            <stat.icon className="w-4 h-4 text-primary mx-auto mb-1" />
-            <p className="text-lg font-bold text-foreground">{stat.value}</p>
-            <p className="text-[10px] text-muted-foreground">{stat.label}</p>
-            {stat.comparison && (
-              <p className={`text-[10px] mt-1 ${stat.isAbove ? "text-success" : "text-destructive"}`}>
-                {stat.comparison}
-              </p>
-            )}
+            <stat.icon className={`w-4 h-4 mx-auto mb-1 ${stat.goalReached ? "text-success" : "text-primary"}`} />
+            <p className={`text-sm font-bold ${stat.goalReached ? "text-success" : "text-foreground"}`}>
+              {stat.value}
+            </p>
+            <p className="text-[10px] text-muted-foreground mb-1.5">{stat.label}</p>
+            <Progress
+              value={stat.progress}
+              className="h-1"
+              style={{ '--progress-background': stat.goalReached ? 'hsl(var(--success))' : 'hsl(var(--primary))' } as React.CSSProperties}
+            />
           </div>
         ))}
       </div>
