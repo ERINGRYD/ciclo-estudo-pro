@@ -1,145 +1,150 @@
 
 
-# Melhorias do Dashboard - Analise e Plano de Implementacao
+# Melhorias do Dashboard - Fase 2
 
-## Diagnostico do Dashboard Atual
+## Analise da Tela Atual
 
-O dashboard atual tem uma boa estrutura gamificada, mas apresenta problemas importantes para a tomada de decisao do usuario:
+Apos as melhorias anteriores, o dashboard possui boa estrutura mas ainda apresenta oportunidades significativas:
 
 ### Problemas Identificados
 
-1. **NextActionCard e statico** - Quando nao ha materias, mostra "Geometria Espacial" hardcoded (linha 196-200 do Index.tsx). Nao considera pontos fracos nem tempo sem estudar.
+1. **Falta de "Greeting" contextual** - O header mostra "Ola, Campeao" sempre igual, sem considerar horario do dia ou estado do usuario (ex: "Bom dia", "Boa noite", "Voce voltou!")
 
-2. **StatsGrid sem contexto temporal** - Mostra numeros absolutos sem tendencia (ex: "42 questoes" mas nao diz se esta melhor ou pior que antes). O "Foco %" nao comunica claramente o que significa.
+2. **Sem indicador de "ultima sessao"** - O usuario nao sabe ha quanto tempo estudou pela ultima vez. Isso e critico para criar urgencia e manter consistencia
 
-3. **CurrentPlan limitado** - Mostra apenas semana e aderencia, sem detalhes de quais materias estao atrasadas ou adiantadas. O botao "Detalhes" nao leva a nada.
+3. **TodaySummary sem meta diaria** - Mostra minutos e questoes do dia mas nao compara com uma meta (ex: "45/60 min hoje")
 
-4. **ActivityHeatmap sem resumo** - O heatmap mostra atividade visual mas nao tem um resumo textual (ex: "Voce estudou 5 dos ultimos 7 dias").
+4. **CurrentPlan sem detalhamento por materia** - Mostra aderencia geral mas nao indica quais materias estao atrasadas vs adiantadas
 
-5. **UserHeader estatico** - O nome "Campeao" e hardcoded. Nao mostra progresso do nivel atual (barra de XP ate o proximo nivel).
+5. **WeakPointsCard desaparece sem dados** - Quando nao ha batalhas suficientes, a secao some completamente. Deveria mostrar uma mensagem incentivando o usuario
 
-6. **Sem secao de "Pontos Fracos"** - O dado existe (wrongQuestionIds no battle-history) mas nao e mostrado no dashboard. O usuario nao sabe quais materias precisa revisar.
+6. **LockedMetrics duplica informacao** - SubjectProgressMetric (nivel 3) mostra progresso por materia, mas poderia ser mais util mostrando distribuicao de tempo semanal
 
-7. **Sem resumo do dia** - Nao mostra um resumo rapido do que o usuario ja fez hoje (minutos estudados, questoes respondidas).
+7. **Sem "Quick Actions"** - Nao ha atalhos rapidos para as acoes mais comuns (iniciar sessao, resolver questoes, ver historico)
 
-8. **Estado vazio pobre** - Quando o usuario nao tem dados, o dashboard mostra tudo zerado sem orientacao de como comecar.
+8. **Sem motivacao/frase do dia** - Falta um elemento motivacional que mude diariamente
+
+9. **CurrentPlan botao "Detalhes" nao funciona** - O botao nao leva a lugar nenhum
+
+10. **ActivityHeatmap sem interacao** - O heatmap mostra dados visuais mas o usuario nao consegue tocar num dia para ver detalhes
 
 ---
 
 ## Melhorias Planejadas
 
-### 1. Novo componente: TodaySummary (Resumo do Dia)
-Card compacto logo apos o UserHeader mostrando:
-- Minutos estudados hoje
-- Questoes respondidas hoje
-- Taxa de acerto hoje
-- Comparacao com a media diaria ("acima/abaixo da sua media")
+### 1. UserHeader contextual com saudacao dinamica
+- Saudacao baseada no horario: "Bom dia", "Boa tarde", "Boa noite"
+- Mostrar ha quanto tempo foi a ultima sessao: "Ultima sessao: hoje" ou "Ultima sessao: ha 3 dias"
+- Se o usuario estiver sem estudar ha mais de 2 dias, mostrar alerta sutil
 
-### 2. NextActionCard inteligente
-- Quando nao ha materias: mostrar CTA para cadastrar materias (link para /ciclo)
-- Quando ha materias: priorizar pela materia com menor taxa de acerto nas batalhas OU menor progresso
-- Mostrar motivo: "Menor progresso" ou "Precisa de revisao"
+### 2. Quick Actions (Acoes Rapidas)
+Novo componente com 3 botoes horizontais logo apos o UserHeader:
+- "Estudar" (link para /ciclo)
+- "Questoes" (link para /coliseu)
+- "Batalha" (link para /batalha)
+Cards compactos com icone, visualmente distintos
 
-### 3. StatsGrid com tendencias
-- Adicionar setas de tendencia (para cima/para baixo) comparando semana atual com anterior
-- Streak: mostrar emoji de fogo escalando (1-3, 4-6, 7+)
-- Questoes: mostrar tendencia semanal
+### 3. TodaySummary com meta diaria e barra de progresso circular
+- Adicionar meta diaria configuravel (padrao: 60 min de estudo, 20 questoes)
+- Mostrar progresso como barra circular/ring ao inves de so numero
+- Adicionar indicador visual quando a meta e atingida
 
-### 4. Novo componente: WeakPointsCard (Pontos Fracos)
-- Exibir as 3 materias com menor taxa de acerto
-- Mostrar taxa de acerto por materia
-- Botao direto para praticar questoes da materia fraca
-- Visivel para todos os niveis (informacao critica nao deve ser bloqueada por nivel)
+### 4. CurrentPlan com distribuicao por materia
+- Expandir o card para mostrar top 3 materias com mais/menos aderencia
+- Mudar botao "Detalhes" para linkar a `/ciclo`
+- Mostrar dias restantes na semana para atingir metas
 
-### 5. UserHeader com barra de progresso do nivel
-- Adicionar barra de XP mostrando progresso ate o proximo nivel
-- Mostrar "450/700 XP para nivel 5"
+### 5. WeakPointsCard com estado vazio
+- Quando nao ha pontos fracos, mostrar mensagem: "Resolva questoes no Coliseu para descobrir seus pontos fracos"
+- Adicionar icone de tendencia (melhorando/piorando) por materia
 
-### 6. ActivityHeatmap com resumo textual
-- Adicionar linha de texto: "Voce estudou X dos ultimos 7 dias"
-- Destacar o dia atual no heatmap
+### 6. Frase motivacional do dia
+- Novo componente pequeno com frase motivacional rotativa
+- Array de frases relacionadas a estudo/aprovacao
+- Muda com base no dia do ano
 
-### 7. Estado vazio orientado
-- Quando nao ha sessoes nem batalhas, mostrar um card de onboarding com 3 passos:
-  1. Cadastre suas materias
-  2. Faca sua primeira sessao de estudo
-  3. Resolva suas primeiras questoes
+### 7. Resumo semanal compacto
+- Novo componente mostrando resumo da semana em formato de mini-grafico
+- Barras verticais para cada dia da semana (seg-dom) mostrando minutos estudados
+- Destaque visual para o dia atual
 
 ---
 
 ## Detalhes Tecnicos
 
 ### Arquivos a criar:
-- `src/components/dashboard/TodaySummary.tsx` - Resumo do dia com minutos, questoes e taxa de acerto
-- `src/components/dashboard/WeakPointsCard.tsx` - Card de pontos fracos com materias de menor acerto
-- `src/components/dashboard/EmptyStateCard.tsx` - Card de onboarding para usuarios novos
+- `src/components/dashboard/QuickActions.tsx` - 3 botoes de acao rapida horizontais
+- `src/components/dashboard/MotivationalQuote.tsx` - Frase motivacional do dia
+- `src/components/dashboard/WeeklyBarChart.tsx` - Mini grafico de barras da semana
 
 ### Arquivos a modificar:
 
-**src/pages/Index.tsx**
-- Calcular dados para TodaySummary (todayMinutes, questionsToday, todayHitRate, dailyAverage)
-- Calcular pontos fracos a partir do battleHistory (agrupar por subject, calcular taxa de acerto)
-- Melhorar logica do NextActionCard para considerar pontos fracos
-- Adicionar TodaySummary entre UserHeader e NextActionCard
-- Adicionar WeakPointsCard apos StatsGrid
-- Renderizar EmptyStateCard quando nao ha dados
-- Passar levelProgress e xpForNextLevel para UserHeader
-
 **src/components/dashboard/UserHeader.tsx**
-- Adicionar props opcionais: levelProgress, xpForNextLevel
-- Renderizar barra de progresso de XP abaixo do nivel
+- Adicionar logica de saudacao por horario (getGreeting)
+- Calcular e exibir "ultima sessao" a partir das sessions via nova prop `lastSessionDate`
+- Alerta visual se sem sessao ha 3+ dias
 
-**src/components/dashboard/StatsGrid.tsx**
-- Adicionar props de tendencia: streakTrend, questionsTrend, focusTrend, hoursTrend
-- Renderizar seta verde (para cima) ou vermelha (para baixo) ao lado dos valores
-- Calcular tendencias no Index.tsx comparando semana atual vs anterior
+**src/components/dashboard/TodaySummary.tsx**
+- Adicionar props `dailyMinuteGoal` e `dailyQuestionGoal` (com defaults 60/20)
+- Exibir barra de progresso em cada stat mostrando % da meta
+- Efeito visual quando meta atingida (cor verde, icone de check)
 
-**src/components/dashboard/NextActionCard.tsx**
-- Adicionar prop opcional `reason` (ex: "Menor progresso", "Precisa revisar", "Maior prioridade")
-- Adicionar prop `isEmpty` para mostrar CTA de cadastrar materias
-- Mostrar o motivo da sugestao abaixo do nome da materia
+**src/components/dashboard/WeakPointsCard.tsx**
+- Mostrar estado vazio com CTA quando `weakPoints` esta vazio (em vez de `return null`)
+- Adicionar prop `trends` para indicar se a materia esta melhorando ou piorando
 
-**src/components/dashboard/ActivityHeatmap.tsx**
-- Adicionar resumo textual no header: "X de 7 dias esta semana"
-- Destacar visualmente o dia atual
+**src/components/dashboard/CurrentPlan.tsx**
+- Adicionar prop `subjectAdherence` (array de materias com % aderencia individual)
+- Mostrar top 3 materias dentro do card
+- Botao "Detalhes" linka para `/ciclo`
 
-### Ordem de renderizacao no dashboard (nova):
+**src/pages/Index.tsx**
+- Calcular `lastSessionDate` a partir de sessions
+- Calcular `subjectAdherence` para CurrentPlan
+- Calcular tendencias de pontos fracos (semana atual vs anterior)
+- Inserir QuickActions, MotivationalQuote e WeeklyBarChart no layout
+- Passar novas props para componentes modificados
+
+### Nova ordem de renderizacao:
 ```text
 1. NotificationPermissionBanner
-2. UserHeader (com barra de XP)
-3. TodaySummary (resumo do dia) -- NOVO
-4. NextActionCard (inteligente) -- MELHORADO
-5. StatsGrid (com tendencias) -- MELHORADO
-6. WeakPointsCard (pontos fracos) -- NOVO
-7. DailyMissions
-8. CurrentPlan
-9. ActivityHeatmap (com resumo) -- MELHORADO
-10. LockedMetrics
+2. UserHeader (contextual + ultima sessao)
+3. MotivationalQuote (frase do dia)
+4. QuickActions (3 botoes)
+5. TodaySummary (com metas)
+6. NextActionCard (inteligente)
+7. WeeklyBarChart (grafico semanal)
+8. StatsGrid (com tendencias)
+9. WeakPointsCard (com estado vazio e tendencias)
+10. DailyMissions
+11. CurrentPlan (com materias)
+12. ActivityHeatmap
+13. LockedMetrics
 ```
 
-Ou se o usuario for novo (sem dados):
+### Calculo de ultima sessao (Index.tsx):
 ```text
-1. NotificationPermissionBanner
-2. UserHeader
-3. EmptyStateCard (onboarding) -- NOVO
-4. DailyMissions
+lastSessionDate = sessions.length > 0
+  ? new Date(Math.max(...sessions.map(s => new Date(s.date).getTime())))
+  : null
 ```
 
-### Calculo de pontos fracos (Index.tsx)
+### Calculo de aderencia por materia:
 ```text
-weakPoints = agrupar battleHistory por subject
-  -> calcular correctAnswers / totalQuestions para cada
-  -> ordenar por menor taxa de acerto
-  -> retornar top 3
+Para cada subject:
+  sessoesDaMateria = sessions.filter(s => s.subjectName === subject.name)
+  diasComSessao = Set(sessoesDaMateria.map(date)).size
+  diasTotais = ceil((hoje - primeiraSessao) / 86400000)
+  aderencia = (diasComSessao / diasTotais) * 100
 ```
 
-### Calculo de tendencias (Index.tsx)
-```text
-Para cada metrica, comparar soma da semana atual vs semana anterior:
-- streakTrend: streak atual vs streak de 7 dias atras
-- questionsTrend: questoes esta semana vs semana passada
-- focusTrend: focusPercentage vs semana passada
-- hoursTrend: horas esta semana vs semana passada
-Resultado: "up" | "down" | "stable"
-```
+### Frases motivacionais:
+Array de ~30 frases. Selecao baseada em `dayOfYear % frases.length` para consistencia diaria.
+
+### WeeklyBarChart:
+- 7 barras (Seg-Dom)
+- Altura proporcional aos minutos do dia
+- Dia atual destacado com cor primaria
+- Dias futuros em cinza claro
+- Tooltip com minutos exatos
 
