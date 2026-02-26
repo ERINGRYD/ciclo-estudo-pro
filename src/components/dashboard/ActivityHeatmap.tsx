@@ -1,5 +1,10 @@
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, useCallback } from "react";
 import { StudySession } from "@/types/study";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const SESSIONS_STORAGE_KEY = "study-cycle-sessions";
 const BATTLE_HISTORY_KEY = "battle-history";
@@ -28,11 +33,8 @@ const ActivityHeatmap = ({ data }: ActivityHeatmapProps) => {
     }
   }, []);
 
-  const activityData = useMemo(() => {
-    if (data && data.length > 0) return data;
-    
-    // Generate activity data for the last 70 days based on real data
-    const result: number[] = [];
+  const dayDetails = useMemo(() => {
+    const result: { date: Date; sessions: number; battles: number; minutes: number; value: number }[] = [];
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -41,27 +43,29 @@ const ActivityHeatmap = ({ data }: ActivityHeatmapProps) => {
       checkDate.setDate(checkDate.getDate() - i);
       const dateString = checkDate.toDateString();
 
-      // Count activities for this day
-      const sessionsOnDay = sessions.filter(s => 
-        new Date(s.date).toDateString() === dateString
-      ).length;
+      const daySessions = sessions.filter(s => new Date(s.date).toDateString() === dateString);
+      const sessionsCount = daySessions.length;
+      const minutesStudied = daySessions.reduce((acc, s) => acc + (s.focusMinutes || 0), 0);
 
-      const battlesOnDay = battles.filter(b => 
-        new Date(b.date).toDateString() === dateString
-      ).length;
+      const battlesCount = battles.filter(b => new Date(b.date).toDateString() === dateString).length;
 
-      const totalActivity = sessionsOnDay + battlesOnDay;
+      const totalActivity = sessionsCount + battlesCount;
+      let value = 0;
+      if (totalActivity === 1) value = 1;
+      else if (totalActivity === 2) value = 2;
+      else if (totalActivity <= 4) value = 3;
+      else if (totalActivity > 4) value = 4;
 
-      // Map to 0-4 scale
-      if (totalActivity === 0) result.push(0);
-      else if (totalActivity === 1) result.push(1);
-      else if (totalActivity === 2) result.push(2);
-      else if (totalActivity <= 4) result.push(3);
-      else result.push(4);
+      result.push({ date: checkDate, sessions: sessionsCount, battles: battlesCount, minutes: minutesStudied, value });
     }
 
     return result;
-  }, [data, sessions, battles]);
+  }, [sessions, battles]);
+
+  const activityData = useMemo(() => {
+    if (data && data.length > 0) return data;
+    return dayDetails.map(d => d.value);
+  }, [data, dayDetails]);
 
   const getColor = (value: number) => {
     if (value === 0) return "bg-muted";
@@ -69,6 +73,10 @@ const ActivityHeatmap = ({ data }: ActivityHeatmapProps) => {
     if (value === 2) return "bg-success/40";
     if (value === 3) return "bg-success/60";
     return "bg-success";
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("pt-BR", { weekday: "short", day: "numeric", month: "short" });
   };
 
   const getActivityLabel = (value: number) => {
@@ -109,15 +117,44 @@ const ActivityHeatmap = ({ data }: ActivityHeatmapProps) => {
 
       <div className="bg-card rounded-2xl p-4 border border-border overflow-x-auto">
         <div className="grid grid-rows-7 grid-flow-col gap-1 min-w-fit">
-          {activityData.map((value, index) => (
-            <div
-              key={index}
-              className={`w-3 h-3 rounded-sm ${getColor(value)} transition-colors ${
-                index === todayIndex ? "ring-1 ring-primary ring-offset-1 ring-offset-card" : ""
-              }`}
-              title={getActivityLabel(value)}
-            />
-          ))}
+          {activityData.map((value, index) => {
+            const detail = dayDetails[index];
+            const hasActivity = detail && (detail.sessions > 0 || detail.battles > 0);
+
+            return (
+              <Popover key={index}>
+                <PopoverTrigger asChild>
+                  <button
+                    className={`w-3 h-3 rounded-sm ${getColor(value)} transition-colors cursor-pointer hover:ring-1 hover:ring-foreground/30 ${
+                      index === todayIndex ? "ring-1 ring-primary ring-offset-1 ring-offset-card" : ""
+                    }`}
+                    aria-label={detail ? `${formatDate(detail.date)}: ${getActivityLabel(value)}` : getActivityLabel(value)}
+                  />
+                </PopoverTrigger>
+                <PopoverContent className="w-48 p-3 text-xs" side="top" align="center">
+                  {detail ? (
+                    <div className="space-y-1.5">
+                      <p className="font-semibold text-foreground capitalize">{formatDate(detail.date)}</p>
+                      {hasActivity ? (
+                        <>
+                          {detail.sessions > 0 && (
+                            <p className="text-muted-foreground">📚 {detail.sessions} {detail.sessions === 1 ? "sessão" : "sessões"} · {detail.minutes} min</p>
+                          )}
+                          {detail.battles > 0 && (
+                            <p className="text-muted-foreground">⚔️ {detail.battles} {detail.battles === 1 ? "batalha" : "batalhas"}</p>
+                          )}
+                        </>
+                      ) : (
+                        <p className="text-muted-foreground">Nenhuma atividade</p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">Sem dados</p>
+                  )}
+                </PopoverContent>
+              </Popover>
+            );
+          })}
         </div>
       </div>
     </div>
