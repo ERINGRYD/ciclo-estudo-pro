@@ -22,6 +22,8 @@ import ActivityHeatmap from "@/components/dashboard/ActivityHeatmap";
 import LockedMetrics from "@/components/dashboard/LockedMetrics";
 import EmptyStateCard from "@/components/dashboard/EmptyStateCard";
 import NotificationPermissionBanner from "@/components/NotificationPermissionBanner";
+import NextRewardCard from "@/components/dashboard/NextRewardCard";
+import LevelUpDialog from "@/components/LevelUpDialog";
 
 const STORAGE_KEY = "study-cycle-subjects";
 const SESSIONS_STORAGE_KEY = "study-cycle-sessions";
@@ -33,7 +35,7 @@ const Index = () => {
   const [sessions, setSessions] = useState<StudySession[]>([]);
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [battleHistory, setBattleHistory] = useState<BattleHistory[]>([]);
-  const { progress, levelProgress, xpForNextLevel } = useUserProgress();
+  const { progress, levelProgress, xpForNextLevel, levelUpInfo, dismissLevelUp } = useUserProgress();
   const { updateMissionProgress } = useDailyMissions(progress.level);
 
   useEffect(() => {
@@ -319,6 +321,12 @@ const Index = () => {
         />
 
         <MotivationalQuote />
+        <NextRewardCard
+          currentLevel={progress.level}
+          currentXP={progress.xp}
+          xpForNextLevel={xpForNextLevel}
+          levelProgress={levelProgress}
+        />
         <QuickActions />
 
         {isEmpty ? (
@@ -388,6 +396,15 @@ const Index = () => {
       </div>
 
       <BottomNav />
+
+      {levelUpInfo && (
+        <LevelUpDialog
+          open={!!levelUpInfo}
+          onClose={dismissLevelUp}
+          newLevel={levelUpInfo.level}
+          newTitle={levelUpInfo.title}
+        />
+      )}
     </div>
   );
 };
