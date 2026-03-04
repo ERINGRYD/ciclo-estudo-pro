@@ -89,6 +89,7 @@ const getXPForCurrentLevel = (currentLevel: number): number => {
 export const useUserProgress = () => {
   const [progress, setProgress] = useState<UserProgress>(getDefaultProgress);
   const [battleHistory, setBattleHistory] = useState<BattleHistory[]>([]);
+  const [levelUpInfo, setLevelUpInfo] = useState<{ level: number; title: string } | null>(null);
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -131,6 +132,9 @@ export const useUserProgress = () => {
       const { level, title } = calculateLevelFromXP(newXP);
       const newProgress = { ...prev, xp: newXP, level, title };
       localStorage.setItem(USER_PROGRESS_KEY, JSON.stringify(newProgress));
+      if (level > prev.level) {
+        setLevelUpInfo({ level, title });
+      }
       return newProgress;
     });
   }, []);
@@ -212,6 +216,10 @@ export const useUserProgress = () => {
   const xpNeededForNextLevel = xpForNextLevel - xpForCurrentLevel;
   const levelProgress = Math.min((xpProgressInLevel / xpNeededForNextLevel) * 100, 100);
 
+  const dismissLevelUp = useCallback(() => {
+    setLevelUpInfo(null);
+  }, []);
+
   return {
     progress,
     battleHistory,
@@ -221,6 +229,8 @@ export const useUserProgress = () => {
     getWrongQuestionIds,
     levelProgress,
     xpForNextLevel,
+    levelUpInfo,
+    dismissLevelUp,
   };
 };
 

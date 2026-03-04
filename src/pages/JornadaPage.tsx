@@ -1,18 +1,12 @@
 import BottomNav from "@/components/BottomNav";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { 
-  Flag, 
-  Star, 
-  Trophy, 
-  Zap, 
-  Target,
-  Swords,
-  Crown,
-  Medal,
-  Rocket,
-  CheckCircle2
+  Flag, Star, Trophy, Zap, Target, Swords, Crown, Medal, Rocket,
+  CheckCircle2, Lock
 } from "lucide-react";
+import { getUnlocksForLevel, getUnlockLevels, CATEGORY_LABELS } from "@/lib/levelUnlocks";
 
 interface Milestone {
   level: number;
@@ -24,14 +18,16 @@ interface Milestone {
 
 const milestones: Milestone[] = [
   { level: 1, title: "Recruta", icon: Flag, description: "Início da jornada", xpRequired: 0 },
+  { level: 2, title: "Aprendiz", icon: Star, description: "Primeiras conquistas", xpRequired: 100 },
   { level: 3, title: "Estudante", icon: Star, description: "Primeiros passos", xpRequired: 250 },
+  { level: 4, title: "Novato", icon: Target, description: "Ganhando ritmo", xpRequired: 450 },
   { level: 5, title: "Dedicado", icon: Target, description: "Compromisso firmado", xpRequired: 700 },
   { level: 7, title: "Persistente", icon: Swords, description: "Superando desafios", xpRequired: 1350 },
+  { level: 8, title: "Guerreiro", icon: Swords, description: "Força de vontade", xpRequired: 1750 },
   { level: 10, title: "Estrategista", icon: Trophy, description: "Dominando a arte", xpRequired: 2700 },
   { level: 12, title: "Grão-Mestre", icon: Medal, description: "Elite dos estudantes", xpRequired: 3850 },
   { level: 15, title: "Mítico", icon: Crown, description: "Lenda viva", xpRequired: 5950 },
-  { level: 18, title: "Transcendente", icon: Rocket, description: "Além dos limites", xpRequired: 8500 },
-  { level: 20, title: "Supremo", icon: Zap, description: "Mestre absoluto", xpRequired: 10450 },
+  { level: 20, title: "Supremo", icon: Rocket, description: "Mestre absoluto", xpRequired: 10450 },
 ];
 
 const JornadaPage = () => {
@@ -54,7 +50,7 @@ const JornadaPage = () => {
       >
         <h1 className="text-2xl font-bold text-foreground">Sua Jornada</h1>
         <p className="text-muted-foreground mt-1">
-          Acompanhe sua evolução de Recruta a Supremo
+          Acompanhe sua evolução e recompensas
         </p>
         
         <div className="flex items-center gap-3 mt-4">
@@ -72,17 +68,16 @@ const JornadaPage = () => {
       {/* Timeline */}
       <div className="px-6 py-8">
         <div className="relative">
-          {/* Linha vertical */}
           <div className="absolute left-6 top-0 bottom-0 w-0.5 bg-border" />
           
           {milestones.map((milestone, index) => {
             const status = getMilestoneStatus(milestone);
             const isCompleted = status === "completed";
             const isCurrent = status === "current";
+            const unlocks = getUnlocksForLevel(milestone.level);
             
             return (
               <div key={milestone.level} className="relative flex gap-6 pb-8 last:pb-0">
-                {/* Ícone do marco */}
                 <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all ${
                   isCompleted 
                     ? "bg-success border-success text-success-foreground" 
@@ -97,7 +92,6 @@ const JornadaPage = () => {
                   )}
                 </div>
 
-                {/* Conteúdo */}
                 <Card className={`flex-1 p-4 transition-all ${
                   isCompleted 
                     ? "border-success/30 bg-success/5" 
@@ -118,9 +112,7 @@ const JornadaPage = () => {
                           Nível {milestone.level}
                         </span>
                         {isCurrent && (
-                          <span className="text-xs text-primary font-medium">
-                            ← Você está aqui!
-                          </span>
+                          <span className="text-xs text-primary font-medium">← Você está aqui!</span>
                         )}
                       </div>
                       <h3 className={`mt-2 font-semibold ${
@@ -128,16 +120,42 @@ const JornadaPage = () => {
                       }`}>
                         {milestone.title}
                       </h3>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {milestone.description}
-                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">{milestone.description}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {milestone.xpRequired.toLocaleString()} XP
-                      </p>
-                    </div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {milestone.xpRequired.toLocaleString()} XP
+                    </p>
                   </div>
+
+                  {/* Unlocks for this level */}
+                  {unlocks.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-border space-y-2">
+                      {unlocks.map((unlock, i) => {
+                        const UnlockIcon = unlock.icon;
+                        const catInfo = CATEGORY_LABELS[unlock.category];
+                        const isUnlocked = progress.level >= milestone.level;
+                        return (
+                          <div key={i} className={`flex items-center gap-2 text-xs ${isUnlocked ? "" : "opacity-60"}`}>
+                            <div className={`w-6 h-6 rounded flex items-center justify-center ${
+                              isUnlocked ? "bg-success/10" : "bg-muted"
+                            }`}>
+                              {isUnlocked ? (
+                                <UnlockIcon className="w-3.5 h-3.5 text-success" />
+                              ) : (
+                                <Lock className="w-3 h-3 text-muted-foreground" />
+                              )}
+                            </div>
+                            <span className={isUnlocked ? "text-foreground" : "text-muted-foreground"}>
+                              {unlock.name}
+                            </span>
+                            <Badge variant="outline" className={`text-[9px] ml-auto ${catInfo.color}`}>
+                              {catInfo.label}
+                            </Badge>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                   
                   {isCurrent && (
                     <div className="mt-4 pt-4 border-t border-border">
