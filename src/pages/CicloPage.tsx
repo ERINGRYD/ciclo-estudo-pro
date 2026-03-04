@@ -332,6 +332,24 @@ const CicloPage = () => {
   };
 
   const handleAddManualTime = (subjectName: string, minutes: number, themeName?: string) => {
+    const subject = subjects.find(s => s.name === subjectName);
+    const subjectColor = subject?.color || "hsl(0, 0%, 50%)";
+
+    // Save a session so the heatmap reflects manual entries
+    const manualSession: StudySession = {
+      id: crypto.randomUUID(),
+      subjectName,
+      subjectColor,
+      themeName,
+      date: new Date().toISOString(),
+      focusMinutes: minutes,
+      breakMinutes: 0,
+      studyType: "manual",
+      stoppingPoint: "",
+      createdAt: new Date().toISOString(),
+    };
+    setSessions(prev => [...prev, manualSession]);
+
     setSubjects(prev => {
       const updated = prev.map(s => {
         if (s.name === subjectName) {
@@ -351,6 +369,9 @@ const CicloPage = () => {
       });
       return checkAndResetCycle(updated);
     });
+
+    // Update daily missions
+    updateMissionProgress('study_time', minutes);
 
     toast({
       title: "Tempo adicionado!",
