@@ -89,6 +89,9 @@ const JornadaPage = () => {
                 className="relative flex gap-6 pb-8 last:pb-0"
                 initial={{ opacity: 0, x: -30 }}
                 whileInView={{ opacity: 1, x: 0 }}
+                onViewportEnter={() => {
+                  if (isCurrent) fireConfetti();
+                }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.5, delay: index * 0.08, ease: "easeOut" }}
               >
