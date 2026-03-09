@@ -2,6 +2,7 @@ import BottomNav from "@/components/BottomNav";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { motion } from "framer-motion";
 import { 
   Flag, Star, Trophy, Zap, Target, Swords, Crown, Medal, Rocket,
   CheckCircle2, Lock
