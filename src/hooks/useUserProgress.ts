@@ -91,26 +91,46 @@ export const useUserProgress = () => {
   const [battleHistory, setBattleHistory] = useState<BattleHistory[]>([]);
   const [levelUpInfo, setLevelUpInfo] = useState<{ level: number; title: string } | null>(null);
 
-  // Load from localStorage on mount
+  // Load from localStorage on mount and sync across hook instances
   useEffect(() => {
-    const savedProgress = localStorage.getItem(USER_PROGRESS_KEY);
-    if (savedProgress) {
-      try {
-        const parsed = JSON.parse(savedProgress);
-        setProgress(parsed);
-      } catch {
-        setProgress(getDefaultProgress());
+    const loadFromStorage = () => {
+      const savedProgress = localStorage.getItem(USER_PROGRESS_KEY);
+      if (savedProgress) {
+        try {
+          setProgress(JSON.parse(savedProgress));
+        } catch {
+          setProgress(getDefaultProgress());
+        }
       }
-    }
 
-    const savedHistory = localStorage.getItem(BATTLE_HISTORY_KEY);
-    if (savedHistory) {
-      try {
-        setBattleHistory(JSON.parse(savedHistory));
-      } catch {
-        setBattleHistory([]);
+      const savedHistory = localStorage.getItem(BATTLE_HISTORY_KEY);
+      if (savedHistory) {
+        try {
+          setBattleHistory(JSON.parse(savedHistory));
+        } catch {
+          setBattleHistory([]);
+        }
       }
-    }
+    };
+
+    loadFromStorage();
+
+    // Sync state when other hook instances update localStorage
+    const handleStorageSync = (e: StorageEvent) => {
+      if (e.key === USER_PROGRESS_KEY || e.key === BATTLE_HISTORY_KEY) {
+        loadFromStorage();
+      }
+    };
+
+    // Custom event for same-tab sync between hook instances
+    const handleCustomSync = () => loadFromStorage();
+
+    window.addEventListener('storage', handleStorageSync);
+    window.addEventListener('user-progress-updated', handleCustomSync);
+    return () => {
+      window.removeEventListener('storage', handleStorageSync);
+      window.removeEventListener('user-progress-updated', handleCustomSync);
+    };
   }, []);
 
   // Save progress to localStorage
