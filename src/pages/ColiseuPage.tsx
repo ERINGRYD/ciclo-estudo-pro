@@ -117,6 +117,14 @@ const ColiseuPage = () => {
   const subjects = ['Todas', 'Matemática', 'História', 'Português'];
 
   const handleModeSelect = (mode: BattleMode) => {
+    // Check level requirement
+    if (mode.levelRequired && progress.level < mode.levelRequired) {
+      toast.error("Modo Bloqueado!", {
+        description: `Você precisa atingir o nível ${mode.levelRequired} para desbloquear este modo.`
+      });
+      return;
+    }
+
     setSelectedMode(mode);
     
     if (mode.id === 'flashcards') {
