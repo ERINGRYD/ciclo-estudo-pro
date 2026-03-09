@@ -137,6 +137,7 @@ export const useUserProgress = () => {
   const saveProgress = useCallback((newProgress: UserProgress) => {
     localStorage.setItem(USER_PROGRESS_KEY, JSON.stringify(newProgress));
     setProgress(newProgress);
+    window.dispatchEvent(new Event('user-progress-updated'));
   }, []);
 
   // Save battle history to localStorage
