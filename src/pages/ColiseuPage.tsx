@@ -21,6 +21,7 @@ interface BattleMode {
   xp: string;
   border: boolean;
   questionCount?: number;
+  levelRequired?: number;
 }
 
 const ColiseuPage = () => {
