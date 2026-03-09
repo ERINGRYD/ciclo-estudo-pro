@@ -105,8 +105,8 @@ const QuestionBattleDialog = ({
     setShowFeedback(false);
     
     if (isLastQuestion) {
-      // Calculate final results
-      const allResults = [...results, lastResult!];
+      // Calculate final results — results already includes lastResult from handleConfirm
+      const allResults = results;
       const totalXP = allResults.reduce((sum, r) => sum + r.xpEarned, 0);
       const correctAnswers = allResults.filter((r) => r.isCorrect).length;
 
