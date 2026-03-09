@@ -206,6 +206,7 @@ export const useUserProgress = () => {
     setBattleHistory(prev => {
       const newHistory = [newBattle, ...prev].slice(0, 100); // Keep last 100 battles
       localStorage.setItem(BATTLE_HISTORY_KEY, JSON.stringify(newHistory));
+      window.dispatchEvent(new Event('user-progress-updated'));
       return newHistory;
     });
 
