@@ -224,6 +224,7 @@ export const useUserProgress = () => {
         totalBattleWins: prev.totalBattleWins + (isVictory ? 1 : 0),
       };
       localStorage.setItem(USER_PROGRESS_KEY, JSON.stringify(newProgress));
+      window.dispatchEvent(new Event('user-progress-updated'));
       return newProgress;
     });
   }, []);
