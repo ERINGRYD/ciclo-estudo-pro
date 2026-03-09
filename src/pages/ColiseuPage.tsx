@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import BottomNav from "@/components/BottomNav";
-import { Swords, Zap, Timer, Layers, Flame, History, Star, Clock, Repeat, Eye, Settings2, LayoutGrid } from "lucide-react";
+import { Swords, Zap, Timer, Layers, Flame, History, Star, Clock, Repeat, Eye, Settings2, LayoutGrid, Lock } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import QuestionBattleDialog from "@/components/QuestionBattleDialog";
 import BattleHistoryDialog from "@/components/BattleHistoryDialog";
 import { useUserProgress } from "@/hooks/useUserProgress";
@@ -20,6 +21,7 @@ interface BattleMode {
   xp: string;
   border: boolean;
   questionCount?: number;
+  levelRequired?: number;
 }
 
 const ColiseuPage = () => {
@@ -59,6 +61,20 @@ const ColiseuPage = () => {
       questionCount: 15,
     },
     {
+      id: 'cronometrado',
+      title: 'Modo Cronometrado',
+      description: 'Batalha com tempo limitado por questão.',
+      icon: Timer,
+      bgGradient: 'from-orange-500 to-red-600',
+      shadowColor: 'shadow-orange-500/20',
+      iconBg: Timer,
+      time: '30s/Q',
+      xp: '200 XP',
+      border: false,
+      questionCount: 10,
+      levelRequired: 4,
+    },
+    {
       id: 'flashcards',
       title: 'Revisão Flashcards',
       description: 'Treine a memória com repetição espaçada.',
@@ -94,12 +110,21 @@ const ColiseuPage = () => {
       time: 'Erros',
       xp: '2x XP',
       border: false,
+      levelRequired: 7,
     }
   ];
 
   const subjects = ['Todas', 'Matemática', 'História', 'Português'];
 
   const handleModeSelect = (mode: BattleMode) => {
+    // Check level requirement
+    if (mode.levelRequired && progress.level < mode.levelRequired) {
+      toast.error("Modo Bloqueado!", {
+        description: `Você precisa atingir o nível ${mode.levelRequired} para desbloquear este modo.`
+      });
+      return;
+    }
+
     setSelectedMode(mode);
     
     if (mode.id === 'flashcards') {
@@ -218,37 +243,64 @@ const ColiseuPage = () => {
               <span className="text-xs text-muted-foreground">Deslize →</span>
             </div>
             <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
-              {battleModes.map((mode) => {
-                const IconComponent = mode.icon;
-                const IconBgComponent = mode.iconBg;
-                const isSelected = selectedMode?.id === mode.id;
-                return (
-                  <div
-                    key={mode.id}
-                    onClick={() => handleModeSelect(mode)}
-                    className={`shrink-0 w-40 rounded-2xl bg-gradient-to-br ${mode.bgGradient} p-4 ${mode.shadowColor} shadow-lg cursor-pointer hover:scale-105 transition-transform relative overflow-hidden ${isSelected ? 'ring-4 ring-yellow-400' : mode.border ? 'ring-2 ring-yellow-400' : ''}`}
-                  >
-                    <div className="absolute top-3 right-3 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                      <IconBgComponent className="h-4 w-4 text-white/80" />
-                    </div>
-                    <div className="mt-8">
-                      <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center mb-3">
-                        <IconComponent className="h-5 w-5 text-white" />
+              <TooltipProvider>
+                {battleModes.map((mode) => {
+                  const IconComponent = mode.icon;
+                  const IconBgComponent = mode.iconBg;
+                  const isSelected = selectedMode?.id === mode.id;
+                  const isLocked = mode.levelRequired && progress.level < mode.levelRequired;
+                  
+                  const card = (
+                    <div
+                      key={mode.id}
+                      onClick={() => handleModeSelect(mode)}
+                      className={`shrink-0 w-40 rounded-2xl bg-gradient-to-br ${mode.bgGradient} p-4 ${mode.shadowColor} shadow-lg cursor-pointer hover:scale-105 transition-transform relative overflow-hidden ${isSelected ? 'ring-4 ring-yellow-400' : mode.border ? 'ring-2 ring-yellow-400' : ''} ${isLocked ? 'opacity-60' : ''}`}
+                    >
+                      {isLocked && (
+                        <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] rounded-2xl flex items-center justify-center z-10">
+                          <div className="bg-white/20 backdrop-blur-sm p-2 rounded-xl">
+                            <Lock className="h-6 w-6 text-white" />
+                          </div>
+                        </div>
+                      )}
+                      <div className="absolute top-3 right-3 w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
+                        <IconBgComponent className="h-4 w-4 text-white/80" />
                       </div>
-                      <h3 className="text-white font-bold text-sm">{mode.title}</h3>
-                      <p className="text-white/70 text-xs mt-1 line-clamp-2">{mode.description}</p>
-                      <div className="flex items-center gap-2 mt-3 text-xs">
-                        <span className="flex items-center gap-1 text-white/80">
-                          {mode.time === 'Erros' ? <Repeat className="h-3 w-3" /> : <Clock className="h-3 w-3" />} {mode.time}
-                        </span>
-                        <span className="flex items-center gap-1 text-yellow-300 font-semibold">
-                          <Star className="h-3 w-3" /> {mode.xp}
-                        </span>
+                      <div className="mt-8">
+                        <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center mb-3">
+                          <IconComponent className="h-5 w-5 text-white" />
+                        </div>
+                        <h3 className="text-white font-bold text-sm">{mode.title}</h3>
+                        <p className="text-white/70 text-xs mt-1 line-clamp-2">{mode.description}</p>
+                        <div className="flex items-center gap-2 mt-3 text-xs">
+                          <span className="flex items-center gap-1 text-white/80">
+                            {mode.time === 'Erros' ? <Repeat className="h-3 w-3" /> : <Clock className="h-3 w-3" />} {mode.time}
+                          </span>
+                          <span className="flex items-center gap-1 text-yellow-300 font-semibold">
+                            <Star className="h-3 w-3" /> {mode.xp}
+                          </span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+
+                  if (isLocked) {
+                    return (
+                      <Tooltip key={mode.id}>
+                        <TooltipTrigger asChild>
+                          {card}
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-xs">
+                          <p className="font-semibold">🔒 Modo Bloqueado</p>
+                          <p className="text-xs mt-1">Alcance o nível {mode.levelRequired} para desbloquear este modo de batalha.</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  }
+
+                  return card;
+                })}
+              </TooltipProvider>
             </div>
           </div>
 
