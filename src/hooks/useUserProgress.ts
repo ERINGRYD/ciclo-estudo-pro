@@ -144,6 +144,7 @@ export const useUserProgress = () => {
   const saveBattleHistory = useCallback((newHistory: BattleHistory[]) => {
     localStorage.setItem(BATTLE_HISTORY_KEY, JSON.stringify(newHistory));
     setBattleHistory(newHistory);
+    window.dispatchEvent(new Event('user-progress-updated'));
   }, []);
 
   // Add XP and recalculate level
