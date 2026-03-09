@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { getUnlocksForLevel, getUnlockLevels, CATEGORY_LABELS } from "@/lib/levelUnlocks";
 import { fireConfetti, fireMilestoneConfetti } from "@/lib/confetti";
+import { playMilestoneCelebrationSound } from "@/lib/sounds";
 
 interface Milestone {
   level: number;
@@ -91,7 +92,10 @@ const JornadaPage = () => {
                 whileInView={{ opacity: 1, x: 0 }}
                 onViewportEnter={() => {
                   if (isCurrent) fireConfetti();
-                  if (isCompleted && [5, 10, 15, 20].includes(milestone.level)) fireMilestoneConfetti();
+                  if (isCompleted && [5, 10, 15, 20].includes(milestone.level)) {
+                    fireMilestoneConfetti();
+                    playMilestoneCelebrationSound();
+                  }
                 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.5, delay: index * 0.08, ease: "easeOut" }}

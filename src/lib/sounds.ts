@@ -102,3 +102,20 @@ export const playBattleDefeatSound = async () => {
   await new Promise(r => setTimeout(r, 150));
   await createOscillatorSound(293.66, 0.4, 'sine'); // D4
 };
+
+export const playMilestoneCelebrationSound = async () => {
+  // Epic milestone celebration - triumphant fanfare
+  await createOscillatorSound(392, 0.12, 'triangle'); // G4
+  await new Promise(r => setTimeout(r, 50));
+  await createOscillatorSound(523.25, 0.12, 'triangle'); // C5
+  await new Promise(r => setTimeout(r, 50));
+  await createOscillatorSound(659.25, 0.12, 'triangle'); // E5
+  await new Promise(r => setTimeout(r, 50));
+  await createOscillatorSound(783.99, 0.15, 'triangle'); // G5
+  await new Promise(r => setTimeout(r, 100));
+  await createOscillatorSound(1046.50, 0.2, 'triangle'); // C6
+  await new Promise(r => setTimeout(r, 80));
+  await createOscillatorSound(1318.51, 0.2, 'triangle'); // E6
+  await new Promise(r => setTimeout(r, 80));
+  await createOscillatorSound(1567.98, 0.5, 'triangle'); // G6
+};
