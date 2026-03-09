@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import BottomNav from "@/components/BottomNav";
-import { Swords, Zap, Timer, Layers, Flame, History, Star, Clock, Repeat, Eye, Settings2, LayoutGrid } from "lucide-react";
+import { Swords, Zap, Timer, Layers, Flame, History, Star, Clock, Repeat, Eye, Settings2, LayoutGrid, Lock } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import QuestionBattleDialog from "@/components/QuestionBattleDialog";
 import BattleHistoryDialog from "@/components/BattleHistoryDialog";
 import { useUserProgress } from "@/hooks/useUserProgress";
