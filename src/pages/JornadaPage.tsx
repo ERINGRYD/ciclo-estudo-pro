@@ -35,7 +35,8 @@ const JornadaPage = () => {
 
   const getMilestoneStatus = (milestone: Milestone) => {
     if (progress.level >= milestone.level) return "completed";
-    if (progress.level === milestone.level - 1 || progress.level === milestone.level - 2) return "current";
+    const nextMilestone = milestones.find(m => m.level > progress.level);
+    if (nextMilestone && nextMilestone.level === milestone.level) return "current";
     return "locked";
   };
 
