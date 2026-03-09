@@ -10,7 +10,7 @@ import {
   CheckCircle2, Lock
 } from "lucide-react";
 import { getUnlocksForLevel, getUnlockLevels, CATEGORY_LABELS } from "@/lib/levelUnlocks";
-import { fireConfetti } from "@/lib/confetti";
+import { fireConfetti, fireMilestoneConfetti } from "@/lib/confetti";
 
 interface Milestone {
   level: number;
