@@ -1,7 +1,6 @@
 import { useRef, useCallback } from "react";
 import BottomNav from "@/components/BottomNav";
 import { useUserProgress } from "@/hooks/useUserProgress";
-import { useUserProgress } from "@/hooks/useUserProgress";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { motion, useInView } from "framer-motion";
