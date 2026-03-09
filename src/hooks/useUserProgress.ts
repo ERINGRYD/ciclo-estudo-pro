@@ -155,6 +155,7 @@ export const useUserProgress = () => {
       if (level > prev.level) {
         setLevelUpInfo({ level, title });
       }
+      window.dispatchEvent(new Event('user-progress-updated'));
       return newProgress;
     });
   }, []);
