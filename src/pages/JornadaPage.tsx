@@ -158,22 +158,27 @@ const JornadaPage = () => {
                     </div>
                   )}
                   
-                  {isCurrent && (
-                    <div className="mt-4 pt-4 border-t border-border">
-                      <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                        <span>Progresso para próximo nível</span>
-                        <span>{Math.round(((progress.xp - milestone.xpRequired) / (milestones[index + 1]?.xpRequired - milestone.xpRequired || 1)) * 100)}%</span>
+                  {isCurrent && (() => {
+                    const prevMilestone = milestones.filter(m => m.level <= progress.level).pop();
+                    const prevXP = prevMilestone?.xpRequired ?? 0;
+                    const targetXP = milestone.xpRequired;
+                    const range = targetXP - prevXP || 1;
+                    const pct = Math.max(0, Math.min(Math.round(((progress.xp - prevXP) / range) * 100), 100));
+                    return (
+                      <div className="mt-4 pt-4 border-t border-border">
+                        <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                          <span>Progresso para este nível</span>
+                          <span>{pct}%</span>
+                        </div>
+                        <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-primary rounded-full transition-all"
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
                       </div>
-                      <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                        <div 
-                          className="h-full bg-primary rounded-full transition-all"
-                          style={{
-                            width: `${Math.min(((progress.xp - milestone.xpRequired) / (milestones[index + 1]?.xpRequired - milestone.xpRequired || 1)) * 100, 100)}%`
-                          }}
-                        />
-                      </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </Card>
               </div>
             );
