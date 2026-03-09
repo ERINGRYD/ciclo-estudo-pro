@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { getUnlocksForLevel, getUnlockLevels, CATEGORY_LABELS } from "@/lib/levelUnlocks";
 import { fireConfetti, fireMilestoneConfetti } from "@/lib/confetti";
+import { playMilestoneCelebrationSound } from "@/lib/sounds";
 
 interface Milestone {
   level: number;
