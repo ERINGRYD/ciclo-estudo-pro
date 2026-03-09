@@ -1,13 +1,15 @@
+import { useRef, useCallback } from "react";
 import BottomNav from "@/components/BottomNav";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { 
   Flag, Star, Trophy, Zap, Target, Swords, Crown, Medal, Rocket,
   CheckCircle2, Lock
 } from "lucide-react";
 import { getUnlocksForLevel, getUnlockLevels, CATEGORY_LABELS } from "@/lib/levelUnlocks";
+import { fireConfetti } from "@/lib/confetti";
 
 interface Milestone {
   level: number;
