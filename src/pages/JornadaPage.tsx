@@ -1,13 +1,15 @@
+import { useRef, useCallback } from "react";
 import BottomNav from "@/components/BottomNav";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { 
   Flag, Star, Trophy, Zap, Target, Swords, Crown, Medal, Rocket,
   CheckCircle2, Lock
 } from "lucide-react";
 import { getUnlocksForLevel, getUnlockLevels, CATEGORY_LABELS } from "@/lib/levelUnlocks";
+import { fireConfetti } from "@/lib/confetti";
 
 interface Milestone {
   level: number;
@@ -87,6 +89,9 @@ const JornadaPage = () => {
                 className="relative flex gap-6 pb-8 last:pb-0"
                 initial={{ opacity: 0, x: -30 }}
                 whileInView={{ opacity: 1, x: 0 }}
+                onViewportEnter={() => {
+                  if (isCurrent) fireConfetti();
+                }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.5, delay: index * 0.08, ease: "easeOut" }}
               >
