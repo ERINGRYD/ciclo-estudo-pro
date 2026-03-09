@@ -61,6 +61,20 @@ const ColiseuPage = () => {
       questionCount: 15,
     },
     {
+      id: 'cronometrado',
+      title: 'Modo Cronometrado',
+      description: 'Batalha com tempo limitado por questão.',
+      icon: Timer,
+      bgGradient: 'from-orange-500 to-red-600',
+      shadowColor: 'shadow-orange-500/20',
+      iconBg: Timer,
+      time: '30s/Q',
+      xp: '200 XP',
+      border: false,
+      questionCount: 10,
+      levelRequired: 4,
+    },
+    {
       id: 'flashcards',
       title: 'Revisão Flashcards',
       description: 'Treine a memória com repetição espaçada.',
@@ -96,6 +110,7 @@ const ColiseuPage = () => {
       time: 'Erros',
       xp: '2x XP',
       border: false,
+      levelRequired: 7,
     }
   ];
 
