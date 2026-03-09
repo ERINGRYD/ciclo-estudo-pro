@@ -44,8 +44,11 @@ const JornadaPage = () => {
   return (
     <div className="min-h-screen bg-background pb-24">
       {/* Header */}
-      <div 
+      <motion.div 
         className="relative px-6 pt-12 pb-8"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
         style={{
           background: "linear-gradient(135deg, hsl(var(--primary) / 0.1) 0%, hsl(var(--info) / 0.05) 100%)"
         }}
@@ -65,7 +68,7 @@ const JornadaPage = () => {
             <span className="text-sm font-medium text-warning">Nível {progress.level}</span>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Timeline */}
       <div className="px-6 py-8">
