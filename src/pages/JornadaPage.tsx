@@ -82,109 +82,133 @@ const JornadaPage = () => {
             const unlocks = getUnlocksForLevel(milestone.level);
             
             return (
-              <div key={milestone.level} className="relative flex gap-6 pb-8 last:pb-0">
-                <div className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all ${
-                  isCompleted 
-                    ? "bg-success border-success text-success-foreground" 
-                    : isCurrent
-                      ? "bg-primary border-primary text-primary-foreground animate-pulse"
-                      : "bg-muted border-border text-muted-foreground"
-                }`}>
+              <motion.div 
+                key={milestone.level} 
+                className="relative flex gap-6 pb-8 last:pb-0"
+                initial={{ opacity: 0, x: -30 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ duration: 0.5, delay: index * 0.08, ease: "easeOut" }}
+              >
+                <motion.div 
+                  className={`relative z-10 w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all ${
+                    isCompleted 
+                      ? "bg-success border-success text-success-foreground" 
+                      : isCurrent
+                        ? "bg-primary border-primary text-primary-foreground animate-pulse"
+                        : "bg-muted border-border text-muted-foreground"
+                  }`}
+                  initial={{ scale: 0 }}
+                  whileInView={{ scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.4, delay: index * 0.08 + 0.2, type: "spring", stiffness: 200 }}
+                >
                   {isCompleted ? (
                     <CheckCircle2 className="w-6 h-6" />
                   ) : (
                     <milestone.icon className="w-5 h-5" />
                   )}
-                </div>
+                </motion.div>
 
-                <Card className={`flex-1 p-4 transition-all ${
-                  isCompleted 
-                    ? "border-success/30 bg-success/5" 
-                    : isCurrent
-                      ? "border-primary/50 bg-primary/5 shadow-md"
-                      : "opacity-60"
-                }`}>
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded ${
-                          isCompleted 
-                            ? "bg-success/20 text-success" 
-                            : isCurrent
-                              ? "bg-primary/20 text-primary"
-                              : "bg-muted text-muted-foreground"
+                <motion.div
+                  className="flex-1"
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  transition={{ duration: 0.5, delay: index * 0.08 + 0.15, ease: "easeOut" }}
+                >
+                  <Card className={`p-4 transition-all ${
+                    isCompleted 
+                      ? "border-success/30 bg-success/5" 
+                      : isCurrent
+                        ? "border-primary/50 bg-primary/5 shadow-md"
+                        : "opacity-60"
+                  }`}>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+                            isCompleted 
+                              ? "bg-success/20 text-success" 
+                              : isCurrent
+                                ? "bg-primary/20 text-primary"
+                                : "bg-muted text-muted-foreground"
+                          }`}>
+                            Nível {milestone.level}
+                          </span>
+                          {isCurrent && (
+                            <span className="text-xs text-primary font-medium">← Você está aqui!</span>
+                          )}
+                        </div>
+                        <h3 className={`mt-2 font-semibold ${
+                          isCompleted || isCurrent ? "text-foreground" : "text-muted-foreground"
                         }`}>
-                          Nível {milestone.level}
-                        </span>
-                        {isCurrent && (
-                          <span className="text-xs text-primary font-medium">← Você está aqui!</span>
-                        )}
+                          {milestone.title}
+                        </h3>
+                        <p className="text-sm text-muted-foreground mt-1">{milestone.description}</p>
                       </div>
-                      <h3 className={`mt-2 font-semibold ${
-                        isCompleted || isCurrent ? "text-foreground" : "text-muted-foreground"
-                      }`}>
-                        {milestone.title}
-                      </h3>
-                      <p className="text-sm text-muted-foreground mt-1">{milestone.description}</p>
+                      <p className="text-sm font-medium text-muted-foreground">
+                        {milestone.xpRequired.toLocaleString()} XP
+                      </p>
                     </div>
-                    <p className="text-sm font-medium text-muted-foreground">
-                      {milestone.xpRequired.toLocaleString()} XP
-                    </p>
-                  </div>
 
-                  {/* Unlocks for this level */}
-                  {unlocks.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-border space-y-2">
-                      {unlocks.map((unlock, i) => {
-                        const UnlockIcon = unlock.icon;
-                        const catInfo = CATEGORY_LABELS[unlock.category];
-                        const isUnlocked = progress.level >= milestone.level;
-                        return (
-                          <div key={i} className={`flex items-center gap-2 text-xs ${isUnlocked ? "" : "opacity-60"}`}>
-                            <div className={`w-6 h-6 rounded flex items-center justify-center ${
-                              isUnlocked ? "bg-success/10" : "bg-muted"
-                            }`}>
-                              {isUnlocked ? (
-                                <UnlockIcon className="w-3.5 h-3.5 text-success" />
-                              ) : (
-                                <Lock className="w-3 h-3 text-muted-foreground" />
-                              )}
+                    {/* Unlocks for this level */}
+                    {unlocks.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-border space-y-2">
+                        {unlocks.map((unlock, i) => {
+                          const UnlockIcon = unlock.icon;
+                          const catInfo = CATEGORY_LABELS[unlock.category];
+                          const isUnlocked = progress.level >= milestone.level;
+                          return (
+                            <div key={i} className={`flex items-center gap-2 text-xs ${isUnlocked ? "" : "opacity-60"}`}>
+                              <div className={`w-6 h-6 rounded flex items-center justify-center ${
+                                isUnlocked ? "bg-success/10" : "bg-muted"
+                              }`}>
+                                {isUnlocked ? (
+                                  <UnlockIcon className="w-3.5 h-3.5 text-success" />
+                                ) : (
+                                  <Lock className="w-3 h-3 text-muted-foreground" />
+                                )}
+                              </div>
+                              <span className={isUnlocked ? "text-foreground" : "text-muted-foreground"}>
+                                {unlock.name}
+                              </span>
+                              <Badge variant="outline" className={`text-[9px] ml-auto ${catInfo.color}`}>
+                                {catInfo.label}
+                              </Badge>
                             </div>
-                            <span className={isUnlocked ? "text-foreground" : "text-muted-foreground"}>
-                              {unlock.name}
-                            </span>
-                            <Badge variant="outline" className={`text-[9px] ml-auto ${catInfo.color}`}>
-                              {catInfo.label}
-                            </Badge>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                  
-                  {isCurrent && (() => {
-                    const prevMilestone = milestones.filter(m => m.level <= progress.level).pop();
-                    const prevXP = prevMilestone?.xpRequired ?? 0;
-                    const targetXP = milestone.xpRequired;
-                    const range = targetXP - prevXP || 1;
-                    const pct = Math.max(0, Math.min(Math.round(((progress.xp - prevXP) / range) * 100), 100));
-                    return (
-                      <div className="mt-4 pt-4 border-t border-border">
-                        <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                          <span>Progresso para este nível</span>
-                          <span>{pct}%</span>
-                        </div>
-                        <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
-                          <div 
-                            className="h-full bg-primary rounded-full transition-all"
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
+                          );
+                        })}
                       </div>
-                    );
-                  })()}
-                </Card>
-              </div>
+                    )}
+                    
+                    {isCurrent && (() => {
+                      const prevMilestone = milestones.filter(m => m.level <= progress.level).pop();
+                      const prevXP = prevMilestone?.xpRequired ?? 0;
+                      const targetXP = milestone.xpRequired;
+                      const range = targetXP - prevXP || 1;
+                      const pct = Math.max(0, Math.min(Math.round(((progress.xp - prevXP) / range) * 100), 100));
+                      return (
+                        <div className="mt-4 pt-4 border-t border-border">
+                          <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                            <span>Progresso para este nível</span>
+                            <span>{pct}%</span>
+                          </div>
+                          <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                            <motion.div 
+                              className="h-full bg-primary rounded-full"
+                              initial={{ width: 0 }}
+                              whileInView={{ width: `${pct}%` }}
+                              viewport={{ once: true }}
+                              transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </Card>
+                </motion.div>
+              </motion.div>
             );
           })}
         </div>
