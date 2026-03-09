@@ -172,6 +172,7 @@ export const useUserProgress = () => {
       const { level, title } = calculateLevelFromXP(newXP);
       const newProgress = { ...prev, xp: newXP, level, title };
       localStorage.setItem(USER_PROGRESS_KEY, JSON.stringify(newProgress));
+      window.dispatchEvent(new Event('user-progress-updated'));
       return newProgress;
     });
     return success;
