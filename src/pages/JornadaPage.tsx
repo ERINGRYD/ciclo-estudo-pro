@@ -9,7 +9,7 @@ import {
   CheckCircle2, Lock
 } from "lucide-react";
 import { getUnlocksForLevel, getUnlockLevels, CATEGORY_LABELS } from "@/lib/levelUnlocks";
-import { fireConfetti } from "@/lib/confetti";
+import { fireConfetti, fireMilestoneConfetti } from "@/lib/confetti";
 
 interface Milestone {
   level: number;
@@ -91,6 +91,7 @@ const JornadaPage = () => {
                 whileInView={{ opacity: 1, x: 0 }}
                 onViewportEnter={() => {
                   if (isCurrent) fireConfetti();
+                  if (isCompleted && [5, 10, 15, 20].includes(milestone.level)) fireMilestoneConfetti();
                 }}
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.5, delay: index * 0.08, ease: "easeOut" }}
