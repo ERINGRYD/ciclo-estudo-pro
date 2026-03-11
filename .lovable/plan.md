@@ -1,77 +1,43 @@
 
 
-## Sistema de Desbloqueio Progressivo por Nível
+# Temas organizados por assertividade no Campo de Batalha
 
-### Situacao Atual
+## Problema atual
+O Campo de Batalha mostra estatísticas apenas por **matéria** (Português, Física, etc.), mas não detalha os **temas/tópicos** dentro de cada matéria (ex: Cinemática, Gramática, Genética). Além disso, o histórico de batalha atual só armazena `wrongQuestionIds`, não todas as questões respondidas -- impossibilitando calcular assertividade por tópico.
 
-O app ja possui uma base solida:
-- 20 niveis com thresholds de XP
-- `LockedMetrics` desbloqueia analytics nos niveis 3, 5, 8, 12
-- Loja tem `levelRequired` em alguns itens
-- `JornadaPage` mostra timeline mas sem recompensas concretas
-- Missoes diarias escalam com nivel (2 missoes ate nv5, 3 depois)
+## Plano
 
-O que falta: um sistema unificado que define **o que desbloqueia em cada nivel** e comunica isso ao usuario de forma clara.
+### 1. Expandir o modelo de dados de batalha
+Adicionar um campo `answeredQuestionIds: number[]` ao tipo `BattleHistory` (em `src/types/question.ts` e `src/hooks/useUserProgress.ts`) para armazenar **todas** as questões respondidas, não apenas as erradas. Isso permite calcular acertos por tópico.
 
----
+### 2. Gravar todas as questões respondidas no `recordBattle`
+No `QuestionBattleDialog.tsx`, passar os IDs de todas as questões respondidas ao chamar `recordBattle()`. No hook `useUserProgress`, salvar esse novo campo no localStorage.
 
-### Plano
-
-#### 1. Criar definicao centralizada de desbloqueios (`src/lib/levelUnlocks.ts`)
-
-Um arquivo que mapeia cada nivel a suas recompensas:
+### 3. Calcular estatísticas por tópico
+No `BatalhaPage.tsx`, criar um `useMemo` que cruza `answeredQuestionIds` e `wrongQuestionIds` com o banco de questões (`sampleQuestions`) para gerar stats por tópico:
 
 ```text
-Nivel 1:  Acesso basico (Ciclo, Batalha)
-Nivel 2:  Missao diaria bonus (+1 slot)
-Nivel 3:  Metrica "Progresso por Materia" + Avatar Guerreiro disponivel na loja
-Nivel 4:  Modo de batalha "Cronometrado"
-Nivel 5:  3 missoes diarias + Metrica "Analise de Desempenho" + Tema Oceano
-Nivel 7:  Modo "Operacao Resgate" (questoes erradas)
-Nivel 8:  Metrica "Metas Inteligentes" + Avatar Rei disponivel
-Nivel 10: Tema Midas + Trofeu Elite
-Nivel 12: Metrica "Insights Avancados" + Titulo "Lenda Viva"
-Nivel 15: Missao diaria especial (bonus XP)
-Nivel 20: Recompensa final exclusiva
+TopicStats {
+  subject, topic,
+  totalAnswered, correctAnswers,
+  accuracy (%)
+}
 ```
 
-Cada entrada tera: `level`, `category` (feature/cosmetic/mission), `name`, `description`, `icon`.
+Ordenar por accuracy (menor primeiro = mais fraco).
 
-#### 2. Dialog de Level Up com recompensas (`src/components/LevelUpDialog.tsx`)
+### 4. Adicionar seção de tópicos nos cards de matéria
+Dentro de cada `EnemyCard`, adicionar uma lista colapsável (usando Collapsible) mostrando os tópicos daquela matéria ordenados por assertividade:
+- Barra de progresso colorida (vermelho < 50%, amarelo 50-79%, verde >= 80%)
+- Porcentagem de acerto e contagem (ex: "3/5 - 60%")
+- Tópicos com pior desempenho aparecem primeiro
 
-Quando o usuario sobe de nivel:
-- Dialog animado com confetti (ja existe `fireMilestoneConfetti`)
-- Mostra o novo titulo
-- Lista as recompensas desbloqueadas naquele nivel
-- Botao "Continuar" fecha o dialog
+### 5. Seção global "Tópicos Fracos"
+Adicionar uma seção no topo da aba "Linha de Frente" mostrando os 5 tópicos com menor assertividade geral, com botão para iniciar batalha filtrada por aquele tópico.
 
-Modificar `useUserProgress` para detectar mudanca de nivel e emitir um callback `onLevelUp`.
-
-#### 3. Atualizar JornadaPage com recompensas visiveis
-
-Cada milestone na timeline mostrara as recompensas especificas daquele nivel com icones e badges indicando se ja foi desbloqueado. Os itens bloqueados ficam com visual "locked" e mostram o que o usuario ganhara ao chegar la.
-
-#### 4. Integrar verificacao de nivel nos componentes existentes
-
-- **Loja**: ja tem `levelRequired` - sem mudanca necessaria
-- **LockedMetrics**: ja tem niveis - sem mudanca necessaria  
-- **DailyMissions**: usar `levelUnlocks` para determinar quantidade de missoes
-- **Modos de batalha**: verificar nivel minimo antes de permitir acesso
-
-#### 5. Secao "Proxima Recompensa" no Dashboard
-
-Adicionar um card compacto no dashboard mostrando a proxima recompensa a ser desbloqueada e o progresso ate la, incentivando o usuario a continuar.
-
----
-
-### Arquivos a criar/modificar
-
-| Acao | Arquivo |
-|------|---------|
-| Criar | `src/lib/levelUnlocks.ts` - definicoes centralizadas |
-| Criar | `src/components/LevelUpDialog.tsx` - celebracao de nivel |
-| Modificar | `src/hooks/useUserProgress.ts` - detectar level up |
-| Modificar | `src/pages/JornadaPage.tsx` - mostrar recompensas por nivel |
-| Criar | `src/components/dashboard/NextRewardCard.tsx` - card de proxima recompensa |
-| Modificar | `src/pages/Index.tsx` - incluir NextRewardCard e LevelUpDialog |
+### Arquivos modificados
+- `src/types/question.ts` -- adicionar `answeredQuestionIds` ao `BattleHistory`
+- `src/hooks/useUserProgress.ts` -- salvar novo campo
+- `src/components/QuestionBattleDialog.tsx` -- passar IDs respondidos
+- `src/pages/BatalhaPage.tsx` -- calcular e exibir stats por tópico
 
