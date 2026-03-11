@@ -27,7 +27,7 @@ const PomodoroTimer = ({ subject, themeName, onClose, onSessionComplete }: Pomod
   const [totalBreakTime, setTotalBreakTime] = useState(0);
   const [totalPauseTime, setTotalPauseTime] = useState(0); // Time spent with timer paused
   const [currentFocusElapsed, setCurrentFocusElapsed] = useState(0); // Seconds elapsed in current focus session
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const pauseStartRef = useRef<number | null>(null);
 
   useEffect(() => {
